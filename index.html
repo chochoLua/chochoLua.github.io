@@ -32,6 +32,10 @@
 
     function onPlayerReady(event) {
     	player.playVideo();
+	player.mute();
+	setTimeOut(() => {
+		player.unmute();
+	}, 500);
     }
 
     </script>
