@@ -30,7 +30,7 @@
                     if (player.isMuted() && player.getPlayerState() == 2 && !isUnMuted) {
                         setTimeout( player.unmute() , 4000);
                         player.playVideo();
-                        isUnMuted = folse;
+                        isUnMuted = false;
                     }
                 }
 		    }
@@ -40,7 +40,7 @@
     function onPlayerReady(event) {
     	player.mute();
     	player.playVideo();
-        player.onStateChange;
+        player.onStateChange();
     }
 
     document.addEventListener("DOMContentLoaded", function(){
