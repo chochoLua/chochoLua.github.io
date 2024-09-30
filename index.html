@@ -9,6 +9,7 @@
     
     //자동재생 함수 추가
     var player;
+    var isUnMuted = true;
     function onYouTubeIframeAPIReady() {
 	    player = new YT.Player('player1', {
 		    videoId: 'VelxwpqXKww', //유튭 영상ID
@@ -21,22 +22,29 @@
 				'rel': 0,
 				'controls': 1,	//youtube 콘트롤 표시
 				'color':'white',
-				'loop': 1, //반복 여부  
+				'loop': 1, //반복 여부 
 		    },
 		    events: {
 		        'onReady': onPlayerReady,
+                'onStateChange': function () {
+                    if (player.isMuted() && player.getPlayerState() == 2 && !isUnMuted) {
+                        setTimeout( player.unmute() , 4000);
+                        player.playVideo();
+                        isUnMuted = folse;
+                    }
+                }
 		    }
 	    });
     }
 
     function onPlayerReady(event) {
+    	player.mute();
     	player.playVideo();
-	    player.mute();
+        player.onStateChange;
     }
 
     document.addEventListener("DOMContentLoaded", function(){
         onYouTubeIframeAPIReady();
-        player.unMute();
     });
     </script>
   </body>
