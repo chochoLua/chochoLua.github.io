@@ -3,6 +3,7 @@
   </head>
   <body>
     <div id="player1" style="width:100%"></div>
+    <button type="button" id="empty" onclick="empty();"></button>
     <button type="button" id="btn" onclick="um();"></button>
 
     <script src="https://www.youtube.com/iframe_api"></script>
@@ -45,7 +46,7 @@
     }
 
     document.addEventListener("DOMContentLoaded", function(){
-    	document.querySelector('#btn').onclick();
+    	document.querySelector('#empty').onclick();
         onYouTubeIframeAPIReady();
     });
     </script>
