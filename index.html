@@ -2,7 +2,8 @@
   <head>
   </head>
   <body>
-    <div id="player1" style="width:100%">
+    <div id="player1" style="width:100%"></div>
+    <button type="button" id="btn" onclick="um();"></button>
 
     <script src="https://www.youtube.com/iframe_api"></script>
     <script type="text/javascript">
@@ -22,7 +23,7 @@
 				'rel': 0,
 				'controls': 1,	//youtube 콘트롤 표시
 				'color':'white',
-				'loop': 1, //반복 여부 
+				'loop': true, //반복 여부 
 		    },
 		    events: {
 		        'onReady': onPlayerReady
@@ -34,8 +35,12 @@
     	player.mute();
     	player.playVideo();
         setTimeout(() => {
-	        player.unMute();
-        }, 3000);
+		    document.querySelector('#btn').onclick();
+        }, 500);
+    }
+
+    function um() {
+        player.unMute();
     }
 
     document.addEventListener("DOMContentLoaded", function(){
