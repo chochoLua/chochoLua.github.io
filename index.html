@@ -2,6 +2,38 @@
   <head>
   </head>
   <body>
+    <div id="player1" style="width:100%">
+
+    //youtube 스크립트 파일 url 추가
+    <script src="https://www.youtube.com/iframe_api"></script>
+    <script type="text/javascript">
     
+    //자동재생 함수 추가
+    var player;
+    function onYouTubeIframeAPIReady() {
+	    player = new YT.Player('player1', {
+		    videoId: 'VelxwpqXKww', //유튭 영상ID
+		    playerVars: {   
+				'autoplay': 1, //자동재생
+				'rel': 0,
+				'showinfo': 0,
+				'modestbranding': 1,
+				'playsinline': 1,
+				'rel': 0,
+				'controls': 1,	//youtube 콘트롤 표시
+				'color':'white',
+				'loop': 1, //반복 여부  
+		    },
+		    events: {
+		        'onReady': onPlayerReady,
+		    }
+	    });
+    }
+
+    function onPlayerReady(event) {
+    	player.playVideo();
+    }
+
+    </script>
   </body>
 </html>
