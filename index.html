@@ -31,9 +31,13 @@
 
     function onPlayerReady(event) {
     	player.playVideo();
-	player.mute();
+	    player.mute();
     }
 
+    document.addEventListener("DOMContentLoaded", function(){
+        onYouTubeIframeAPIReady();
+        player.unMute();
+    });
     </script>
   </body>
 </html>
