@@ -14,7 +14,7 @@
 	  }
 	}
 
-	img {
+	img.rotate {
         animation: rotate 5s infinite;
 	}
     </style>
@@ -43,7 +43,7 @@
 				'rel': 0,
 				'controls': 1,	//youtube 콘트롤 표시
 				'color':'white',
-				'loop': true, //반복 여부 
+				'loop': true,
 		    },
 		    events: {
 		        'onReady': onPlayerReady
@@ -61,6 +61,7 @@
     }
 	    
     function um() {
+        document.querySelector('img').addClass('rotate');
         player.unMute();
 	player.playVideo();
     }
