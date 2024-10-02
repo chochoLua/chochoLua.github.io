@@ -15,7 +15,7 @@
 	}
 
 	img.rotate {
-        animation: rotate 5s infinite;
+        animation: rotate 0.1s infinite;
 	}
     </style>
   </head>
@@ -61,7 +61,7 @@
     }
 	    
     function um() {
-        document.querySelector('img').addClass('rotate');
+        document.querySelector('img').classList.add('rotate');
         player.unMute();
 	player.playVideo();
     }
