@@ -1,10 +1,12 @@
 <html>
   <head>
+    <style>
+        
+    </style>
   </head>
   <body>
-    <div id="player1" style="width:100%"></div>
-    <button type="button" id="empty" onclick="empty();"></button>
-    <button type="button" id="btn" onclick="um();"></button>
+	<img src="src/01.png" onclick="um()"/>
+    <div id="player1" style="width:100%;display:none;"></div>
 
     <script src="https://www.youtube.com/iframe_api"></script>
     <script type="text/javascript">
@@ -39,10 +41,6 @@
 		document.querySelector('body').click();
 		    document.querySelector('#btn').onclick();
         }, 500);
-    }
-
-    function empty() {
-        
     }
 	    
     function um() {
