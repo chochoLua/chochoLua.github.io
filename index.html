@@ -5,7 +5,9 @@
     </style>
   </head>
   <body>
-	<img src="src/01.png" onclick="um()"/>
+    <div style="text-align:center;height:1000px;">
+	    <img src="src/01.png" onclick="um()"/>
+    </div>
     <div id="player1" style="width:100%;display:none;"></div>
 
     <script src="https://www.youtube.com/iframe_api"></script>
@@ -49,7 +51,6 @@
     }
 
     document.addEventListener("DOMContentLoaded", function(){
-    	document.querySelector('#empty').onclick();
         onYouTubeIframeAPIReady();
     });
     </script>
