@@ -30,7 +30,6 @@
     
     //자동재생 함수 추가
     var player;
-    var isUnMuted = true;
     function onYouTubeIframeAPIReady() {
 	    player = new YT.Player('player1', {
 		    videoId: 'VelxwpqXKww', //유튭 영상ID
@@ -60,11 +59,19 @@
 		    document.querySelector('#btn').onclick();
         }, 500);
     }
-	    
+
+    var isPlaying = false;
     function um() {
         document.querySelector('img').classList.add('rotate');
         player.unMute();
-	player.playVideo();
+        if(isPlaying) {
+            isPlaying = false;
+            player.stopVideo();
+        }
+        else {
+            isPlaying = true;
+	        player.playVideo();
+        }
     }
 
     document.addEventListener("DOMContentLoaded", function(){
