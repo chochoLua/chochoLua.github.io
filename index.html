@@ -62,15 +62,16 @@
 
     var isPlaying = false;
     function um() {
-        document.querySelector('img').classList.add('rotate');
         player.unMute();
         if(isPlaying) {
             isPlaying = false;
+            document.querySelector('img').classList.remove('rotate');
             player.stopVideo();
         }
         else {
             isPlaying = true;
-	        player.playVideo();
+            document.querySelector('img').classList.add('rotate');
+		    player.playVideo();
         }
     }
 
