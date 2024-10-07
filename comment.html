@@ -4,11 +4,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" />
+    <style>
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        ul li{
+            border: 1px solid #787878;
+            box-shadow: 1px 3px rgba(0, 0, 0, 0.5);
+            border-radius: 10px;
+            padding: 5px 10px;
+            margin: 5px;
+        }
+    </style>
     <script type="text/javascript">
         async function getComment() {
-            const url = document.querySelector('#url').value
-            const user_id = document.querySelector('#user_id').value
+            const url = document.querySelector('#url').value;
+            const user_id = document.querySelector('#user_id').value;
 
             if (!url.length) {
                 alert('게시글 주소를 입력해주세요.');
@@ -19,40 +33,44 @@
                 return;
             }
 
-            const list = []
-            var path = url.replace('https://bj.afreecatv.com/', 'https://bjapi.afreecatv.com/api/').replace('post', 'title')
+            const list = [];
+            var path = url.replace('https://bj.afreecatv.com/', 'https://bjapi.afreecatv.com/api/').replace('post', 'title');
 
-            const info = await (await fetch(path)).json();
-            const maxPage = Math.ceil(info.count.comment_cnt / 30)
+            const info = await (await fetch(path, {
+                credentials: "include"
+            })).json();
+            const maxPage = Math.ceil(info.count.comment_cnt / 30);
 
             for (var i = 1; i <= maxPage; i++) {
-                getList(i)
+                getList(i);
             }
 
             function getList(page) {
-                fetch(`${path}/comment?page=${page}&orderby=reg_date&p_comment_no=&c_comment_no=&p_highlight_no=&c_highlight_no=`).then(async (res) => {
-                    const { data } = await res.json()
-                    const filter = data.filter((r) => r.user_id == user_id)
+                fetch(`${path}/comment?page=${page}&orderby=reg_date&p_comment_no=&c_comment_no=&p_highlight_no=&c_highlight_no=`, {
+                    credentials: "include"
+                }).then(async (res) => {
+                    const { data } = await res.json();
+                    const filter = data.filter((r) => r.user_id == user_id);
 
                     if (filter.length) {
-                        const $list = document.querySelector('#list')
-                        $list.innerHTML = filter.map((r) => `<li onclick="copy(${r.p_comment_no})">${r.comment}</li>`).join('');
+                        const $list = document.querySelector('#list');
+                        $list.innerHTML = filter.map((r) => `<li onclick="copy(${r.p_comment_no})">${r.comment} <i class="fa-solid fa-copy"></i></li>`).join('');
                     }
                     else {
-                        alert('검색내역이 없습니다.')
+                        alert('검색내역이 없습니다.');
                     }
                 })
             }
         }
 
         function copy(comment_no) {
-            const url = document.querySelector('#url').value
+            const url = document.querySelector('#url').value;
 
-            const commentUrl = `${url}#comment_noti${comment_no}`
+            const commentUrl = `${url}#comment_noti${comment_no}`;
             navigator.clipboard.writeText(`${url}#comment_noti${comment_no}`).then(() => {
-                alert('복사되었습니다.')
+                alert('복사되었습니다.');
             }).catch(() => {
-                prompt('키보드의 Ctrl+C 또는 마우스 오른쪽의 복사하기를 이용해주세요.', commentUrl)
+                prompt('키보드의 Ctrl+C 또는 마우스 오른쪽의 복사하기를 이용해주세요.', commentUrl);
             })
         }
     </script>
