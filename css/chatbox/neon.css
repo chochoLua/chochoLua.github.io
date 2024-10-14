@@ -1,0 +1,60 @@
+:root {
+    --chat-color: #D9003E;
+    --chat-color2: #d84e75;
+  }
+  
+  .item_chat .chat_list li.donation,
+  .item_chat .chat_list li.gift_box {
+    display: none!important;
+  }
+  
+  .item_chat.item_chat_enter:not(.item_chat_idhide) li:not(.gift_box):not(.police):not(.notice):not(.up):not(.join):not(.gift) p {
+    white-space: nowrap !important;
+  }
+  
+  .ig {
+    display: none;
+  }
+  
+  p.nick .dot {
+    display: none !important;
+  }
+  
+  p.nick .name {
+    color: #ffffff !important;
+    text-shadow:
+      0 0 7px #fff, 0 0 9px #fff,
+      0 0 3px var(--chat-color), 0 0 6px var(--chat-color), 0 0 12px var(--chat-color);
+    ;
+    margin: 0 !important;
+    animation: blink 4s linear infinite;
+  }
+  
+  .item_box .chat_list:not(.gift_box) li p.text {
+    color: #ffffff !important;
+    text-shadow:
+      0 0 7px #fff, 0 0 9px #fff,
+      0 0 3px var(--chat-color), 0 0 6px var(--chat-color), 0 0 12px var(--chat-color);
+    ;
+    animation: blink 4s linear infinite;
+  }
+  
+  @keyframes blink {
+    0% {
+      text-shadow: 0 0 7px #fff, 0 0 9px #fff,
+        0 0 3px var(--chat-color2), 0 0 6px var(--chat-color2), 0 0 12px var(--chat-color2);
+      ;
+    }
+  
+    50% {
+      text-shadow: 0 0 7px #fff, 0 0 9px #fff,
+        0 0 3px var(--chat-color), 0 0 6px var(--chat-color), 0 0 12px var(--chat-color);
+      ;
+    }
+  
+    100% {
+      text-shadow: 0 0 7px #fff, 0 0 9px #fff,
+        0 0 3px var(--chat-color2), 0 0 6px var(--chat-color2), 0 0 12px var(--chat-color2);
+      ;
+    }
+  }
