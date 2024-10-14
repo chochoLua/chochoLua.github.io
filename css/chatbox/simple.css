@@ -1,29 +1,29 @@
 :root {
     --chat-color: #FFF1A3;
     --nick-color: #864733;
-  }
-  
-  .item_chat .chat_list {
+}
+
+.item_chat .chat_list {
     padding-right: 1em;
-  }
-  
-  .item_chat .chat_list li {
-    margin-bottom: 10px!important;
-  }
-  
-  
-  .item_chat .chat_list li.gift_box {
+}
+
+.item_chat .chat_list li {
+    margin-bottom: 10px !important;
+}
+
+
+.item_chat .chat_list li.gift_box {
     padding-top: 1em;
     margin-top: 1.5em;
-  }
-  
-  .item_chat .chat_list li:not(.gift_box) {
+}
+
+.item_chat .chat_list li:not(.gift_box) {
     display: flex;
     flex-direction: column;
     margin-left: 2em;
-  }
-  
-  .item_chat .chat_list li:not(.gift_box):after {
+}
+
+.item_chat .chat_list li:not(.gift_box):after {
     content: " ";
     position: absolute;
     background: url('/src/chatbox/puding2.png') no-repeat;
@@ -34,55 +34,72 @@
     width: 1.5em;
     height: 1.5em;
     z-index: 1;
-  }
-  
-  .item_box .chat_list:not(.gift_box) li p.nick {
+}
+
+.item_box .chat_list:not(.gift_box) li p.nick {
     position: relative;
     width: 100%;
-  }
-  
-  p.nick .name {
+}
+
+p.nick .name {
     display: none;
     background: var(--nick-color);
     color: #ffffff !important;
     text-shadow: none;
     border-radius: 20px;
     padding: 5px 15px;
-  }
-  
-  p.nick .dot {
+}
+
+p.nick .dot {
     display: none !important;
-  }
-  
-  .ig {
+}
+
+.ig {
     display: none;
-  }
-  
-  
-  .item_box .chat_list:not(.gift_box) li p.text {
-    color: #000000!important;
-    text-shadow: none!important;
+}
+
+
+.item_box .chat_list:not(.gift_box) li p.text {
+    color: #000000 !important;
+    text-shadow: none !important;
     background: #ffffff;
     border-radius: 30px;
     /* box-shadow: 0 5px 0px 3px var(--nick-color); */
     padding: 10px 20px;
-  }
-  
-  .item_box .gift_box .item_gift {
+}
+
+.item_box .gift_box .item_gift {
     border: 4px solid var(--nick-color) !important;
     background: var(--chat-color) !important;
-  }
-  
-  .item_box .gift_box .item_gift .gift_text {
+}
+
+.item_box .gift_box.afreeca .item_gift {
+    flex-flow: column-reverse nowrap !important;
+    border-radius: 0.6em !important;
+}
+
+.item_box .gift_box .item_gift .gift_text {
     background: var(--nick-color);
-  }
-  
-  .item_box .gift_box .item_gift .gift_text .nick {
+}
+
+.item_box .gift_box.afreeca .gift_text {
+    border-radius: 0.4em 0.4em 0 0;
+    color: #ffffff !important;
+    border: 0;
+}
+
+.item_box .gift_box .item_gift .gift_text .nick {
     position: absolute;
     z-index: 2;
-  }
-  
-  .item_box .gift_box:before {
+}
+
+.item_box .gift_box.afreeca .gift_text .nick {
+    position: relative !important;
+    color: #ffffff;
+    text-shadow: -1px -1px 1px rgba(0, 0, 0, 0.8), -1px -0.5px 1px rgba(0, 0, 0, 0.8), -1px 0px 1px rgba(0, 0, 0, 0.8), -1px 0.5px 1px rgba(0, 0, 0, 0.8), -1px 1px 1px rgba(0, 0, 0, 0.8), -0.5px -1px 1px rgba(0, 0, 0, 0.8), -0.5px -0.5px 1px rgba(0, 0, 0, 0.8), -0.5px 0px 1px rgba(0, 0, 0, 0.8), -0.5px 0.5px 1px rgba(0, 0, 0, 0.8), -0.5px 1px 1px rgba(0, 0, 0, 0.8), 0px -1px 1px rgba(0, 0, 0, 0.8), 0px -0.5px 1px rgba(0, 0, 0, 0.8), 0px 0px 0px rgba(0, 0, 0, 0.8), 0px 0.5px 0px rgba(0, 0, 0, 0.8), 0px 1px 0px rgba(0, 0, 0, 0.8), 0.5px -1px 1px rgba(0, 0, 0, 0.8), 0.5px -0.5px 1px rgba(0, 0, 0, 0.8), 0.5px 0px 0.5px rgba(0, 0, 0, 0.8), 0.5px 0.5px 0.5px rgba(0, 0, 0, 0.8), 0.5px 1px 0.5px rgba(0, 0, 0, 0.8), 1px -1px 1px rgba(0, 0, 0, 0.8), 1px -0.5px 1px rgba(0, 0, 0, 0.8), 1px 0px 1px rgba(0, 0, 0, 0.8), 1px 0.5px 1px rgba(0, 0, 0, 0.8), 1px 1px 1px rgba(0, 0, 0, 0.8);
+}
+
+.item_box .gift_box:before {
     content: "";
     position: absolute;
     z-index: 1;
@@ -95,9 +112,9 @@
     top: -1em;
     left: 50%;
     transform: translateX(-50%);
-  }
-  
-  .item_box .gift_box::after {
+}
+
+.item_box .gift_box::after {
     content: "";
     position: absolute;
     display: block;
@@ -110,12 +127,24 @@
     height: 81px;
     top: -1em;
     z-index: 1;
-  }
-  
-  .item_box .gift_box .item_gift .gift_chat {
+}
+
+.item_box .gift_box .item_gift .gift_chat {
     padding: 0.5em 0.7em 0.5em 0.7em;
-  }
-  
-  .item_box .gift_box .item_gift .gift_msg {
+}
+
+.item_box .gift_box .item_gift .gift_msg {
     background: transparent !important;
-  }
+}
+
+.afreeca_bj,
+.afreeca_mng,
+.afreeca_top,
+.afreeca_fan,
+.afreeca_support,
+.afreeca_follow {
+    top: -0.8em;
+    position: absolute;
+    right: -1em;
+    z-index: 10;
+}

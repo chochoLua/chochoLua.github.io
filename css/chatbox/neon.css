@@ -1,60 +1,49 @@
 :root {
-    --chat-color: #D9003E;
-    --chat-color2: #d84e75;
-  }
-  
-  .item_chat .chat_list li.donation,
-  .item_chat .chat_list li.gift_box {
-    display: none!important;
-  }
-  
-  .item_chat.item_chat_enter:not(.item_chat_idhide) li:not(.gift_box):not(.police):not(.notice):not(.up):not(.join):not(.gift) p {
-    white-space: nowrap !important;
-  }
-  
-  .ig {
-    display: none;
-  }
-  
-  p.nick .dot {
-    display: none !important;
-  }
-  
-  p.nick .name {
-    color: #ffffff !important;
-    text-shadow:
-      0 0 7px #fff, 0 0 9px #fff,
-      0 0 3px var(--chat-color), 0 0 6px var(--chat-color), 0 0 12px var(--chat-color);
-    ;
-    margin: 0 !important;
-    animation: blink 4s linear infinite;
-  }
-  
-  .item_box .chat_list:not(.gift_box) li p.text {
-    color: #ffffff !important;
-    text-shadow:
-      0 0 7px #fff, 0 0 9px #fff,
-      0 0 3px var(--chat-color), 0 0 6px var(--chat-color), 0 0 12px var(--chat-color);
-    ;
-    animation: blink 4s linear infinite;
-  }
-  
-  @keyframes blink {
-    0% {
-      text-shadow: 0 0 7px #fff, 0 0 9px #fff,
-        0 0 3px var(--chat-color2), 0 0 6px var(--chat-color2), 0 0 12px var(--chat-color2);
-      ;
-    }
-  
-    50% {
-      text-shadow: 0 0 7px #fff, 0 0 9px #fff,
-        0 0 3px var(--chat-color), 0 0 6px var(--chat-color), 0 0 12px var(--chat-color);
-      ;
-    }
-  
-    100% {
-      text-shadow: 0 0 7px #fff, 0 0 9px #fff,
-        0 0 3px var(--chat-color2), 0 0 6px var(--chat-color2), 0 0 12px var(--chat-color2);
-      ;
-    }
-  }
+  --chat-color: #FFF1A3;
+  --nick-color: #864733;
+  --icon: url(https://media.discordapp.net/attachments/679315493118803998/1220743927355801710/7b52a476246e7bcd.png?ex=66100d60&is=65fd9860&hm=7f5465baca675193cff9882f500442fb14653580fd42cc583c93349fe8c865a6&=&format=webp&quality=lossless);
+  --icon2: url(https://media.discordapp.net/attachments/679315493118803998/1220741476062072862/c6268a4fd2f5e67e.png?ex=66100b18&is=65fd9618&hm=a67e779f123a233faad8bb4582da47b4e158c1161651d49df7641cf2ae05bcd2&=&format=webp&quality=lossless);
+}
+
+.item_chat .chat_list {
+  left: unset !important;
+  right: 0 !important;
+  width: auto !important;
+  display: flex;
+  flex-direction: row;
+}
+
+.item_chat .chat_list li {
+  display: flex;
+  flex-direction: column-reverse;
+  padding-right: 1em !important;
+}
+
+.item_chat.item_chat_enter:not(.item_chat_idhide) li:not(.gift_box):not(.police):not(.notice):not(.up):not(.join):not(.gift) p {
+  white-space: nowrap !important;
+}
+
+.ig {
+  display: none;
+}
+
+p.nick .dot {
+  display: none !important;
+}
+
+p.nick .name {
+  color: #ffffff !important;
+  text-shadow:
+    0 0 7px #fff, 0 0 9px #fff,
+    0 0 3px #FFF1A3, 0 0 6px #FFF1A3, 0 0 12px #FFF1A3;
+  ;
+  margin: 0 !important;
+}
+
+.item_box .chat_list:not(.gift_box) li p.text {
+  color: #ffffff !important;
+  text-shadow:
+    0 0 7px #fff, 0 0 9px #fff,
+    0 0 3px #FFF1A3, 0 0 6px #FFF1A3, 0 0 12px #FFF1A3;
+  ;
+}
