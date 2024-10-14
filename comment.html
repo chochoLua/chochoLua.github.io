@@ -11,7 +11,7 @@
             padding: 0;
         }
 
-        ul li{
+        ul li {
             border: 1px solid #787878;
             box-shadow: 1px 3px rgba(0, 0, 0, 0.5);
             border-radius: 10px;
@@ -63,6 +63,97 @@
             }
         }
 
+        function copyFanBoard() {
+            const user_id = document.querySelector('#user_id').value;
+
+
+            if (!user_id.length) {
+                alert('댓글 작성자 아이디를 입력해주세요.');
+                return;
+            }
+
+            const fn = `
+            const user_id = '${user_id}'
+            if(!document.querySelector('#commentLayer')) {
+                const $el = document.createElement('div');
+                $el.id = 'commentLayer';
+                $el.style.position = 'fixed';
+                $el.style.background = 'white';
+                $el.style.width = '70%';
+                $el.style.height = '1000px';
+                $el.style.display = 'flex';
+                $el.style.top = 0;
+                $el.style.left = '15%';
+                $el.style.zIndex = 1001;
+
+                const $list = document.createElement('ul');
+                $list.id = 'commentList';
+                $list.style.listStyle = 'none';
+                $list.style.padding = '5px 10px';
+                $el.appendChild($list)
+
+                document.body.appendChild($el);
+            }
+            async function getComment() {
+                const url = location.href;
+
+                if (!url.length) {
+                    alert('게시글 주소를 입력해주세요.');
+                    return;
+                }
+
+                const list = [];
+                var path = url.replace('https://bj.afreecatv.com/', 'https://bjapi.afreecatv.com/api/').replace('post', 'title');
+
+                const info = await (await fetch(path, {
+                    credentials: "include"
+                })).json();
+                const maxPage = Math.ceil(info.count.comment_cnt / 30);
+
+                for (var i = 1; i <= maxPage; i++) {
+                    getList(i);
+                }
+
+                function getList(page) {
+                    fetch('{path}/comment?page={page}&orderby=reg_date&p_comment_no=&c_comment_no=&p_highlight_no=&c_highlight_no='.replace('{path}', path).replace('{page}', page), {
+                        credentials: "include"
+                    }).then(async (res) => {
+                        const { data } = await res.json();
+                        const filter = data.filter((r) => {
+                            console.log(r.user_id, user_id);
+                            return r.user_id == user_id
+                        });
+
+                        if (filter.length) {
+                            const $list = document.querySelector('#commentList');
+                            $list.innerHTML = filter.map((r) => '<li style="font-size:30px;border: 1px solid #787878;box-shadow: 1px 3px rgba(0, 0, 0, 0.5);border-radius: 10px;padding: 5px 10px;margin: 5px;" onclick="copy({r.p_comment_no})">{r.comment} <i class="fa-solid fa-copy"></i></li>'.replace('{r.p_comment_no}', r.p_comment_no).replace('{r.comment}', r.comment)).join('');
+                        }
+                    })
+                }
+            }
+
+            function copy(comment_no) {
+                const url = location.href;
+
+                const commentUrl = '{url}#comment_noti{comment_no}'.replace('{url}', url).replace('{comment_no}', comment_no);
+                navigator.clipboard.writeText(commentUrl).then(() => {
+                    alert('복사되었습니다.\\n1. F12 > Console탭에 붙여넣기\\n2. 댓글 클릭 시 하이라이트 댓글 링크가 복사됩니다.');
+                }).catch(() => {
+                    prompt('키보드의 Ctrl+C 또는 마우스 오른쪽의 복사하기를 이용해주세요.', commentUrl);
+                })
+
+                document.querySelector('div#commentLayer').remove();
+            }
+
+            await getComment();
+            `
+            navigator.clipboard.writeText(fn).then(() => {
+                alert('복사되었습니다.');
+            }).catch(() => {
+                prompt('키보드의 Ctrl+C 또는 마우스 오른쪽의 복사하기를 이용해주세요.', commentUrl);
+            })
+        }
+
         function copy(comment_no) {
             const url = document.querySelector('#url').value;
 
@@ -82,6 +173,7 @@
         <input type="text" id="user_id" placeholder="찾을 댓글 작성자 아이디" />
 
         <button type="button" onclick="getComment()">댓글 찾기</button>
+        <button type="button" onclick="copyFanBoard()">댓글 찾기(애청자 게시판)</button>
     </div>
 
     <div>
