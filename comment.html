@@ -56,9 +56,6 @@
                         const $list = document.querySelector('#list');
                         $list.innerHTML = filter.map((r) => `<li onclick="copy(${r.p_comment_no})">${r.comment} <i class="fa-solid fa-copy"></i></li>`).join('');
                     }
-                    else {
-                        alert('검색내역이 없습니다.');
-                    }
                 })
             }
         }
