@@ -39,24 +39,30 @@
             const info = await (await fetch(path, {
                 credentials: "include"
             })).json();
-            const maxPage = Math.ceil(info.count.comment_cnt / 30);
-
-            for (var i = 1; i <= maxPage; i++) {
-                getList(i);
+            const { code, message } = info;
+            if (code == 1103 || message.includes('애청자 게시판')) {
+                copyFanBoard();
             }
+            else {
+                const maxPage = Math.ceil(info.count.comment_cnt / 30);
 
-            function getList(page) {
-                fetch(`${path}/comment?page=${page}&orderby=reg_date&p_comment_no=&c_comment_no=&p_highlight_no=&c_highlight_no=`, {
-                    credentials: "include"
-                }).then(async (res) => {
-                    const { data } = await res.json();
-                    const filter = data.filter((r) => r.user_id == user_id);
+                for (var i = 1; i <= maxPage; i++) {
+                    getList(i);
+                }
 
-                    if (filter.length) {
-                        const $list = document.querySelector('#list');
-                        $list.innerHTML = filter.map((r) => `<li onclick="copy(${r.p_comment_no})">${r.comment} <i class="fa-solid fa-copy"></i></li>`).join('');
-                    }
-                })
+                function getList(page) {
+                    fetch(`${path}/comment?page=${page}&orderby=reg_date&p_comment_no=&c_comment_no=&p_highlight_no=&c_highlight_no=`, {
+                        credentials: "include"
+                    }).then(async (res) => {
+                        const { data } = await res.json();
+                        const filter = data.filter((r) => r.user_id == user_id);
+
+                        if (filter.length) {
+                            const $list = document.querySelector('#list');
+                            $list.innerHTML = filter.map((r) => `<li onclick="copy(${r.p_comment_no})">${r.comment} <i class="fa-solid fa-copy"></i></li>`).join('');
+                        }
+                    })
+                }
             }
         }
 
@@ -134,7 +140,7 @@
 
                 const commentUrl = '{url}#comment_noti{comment_no}'.replace('{url}', url).replace('{comment_no}', comment_no);
                 navigator.clipboard.writeText(commentUrl).then(() => {
-                    alert('복사되었습니다.\\n1. F12 > Console탭에 붙여넣기\\n2. 댓글 클릭 시 하이라이트 댓글 링크가 복사됩니다.');
+                    alert('복사되었습니다.');
                 }).catch(() => {
                     prompt('키보드의 Ctrl+C 또는 마우스 오른쪽의 복사하기를 이용해주세요.', commentUrl);
                 })
@@ -145,7 +151,7 @@
             await getComment();
             `
             navigator.clipboard.writeText(fn).then(() => {
-                alert('복사되었습니다.');
+                alert('복사되었습니다.\\n1. F12 > Console탭에 붙여넣기\\n2. 댓글 클릭 시 하이라이트 댓글 링크가 복사됩니다.');
             }).catch(() => {
                 prompt('키보드의 Ctrl+C 또는 마우스 오른쪽의 복사하기를 이용해주세요.', commentUrl);
             })
