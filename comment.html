@@ -151,7 +151,7 @@
             await getComment();
             `
             navigator.clipboard.writeText(fn).then(() => {
-                alert('복사되었습니다.\\n1. F12 > Console탭에 붙여넣기\\n2. 댓글 클릭 시 하이라이트 댓글 링크가 복사됩니다.');
+                alert('애청자 게시글입니다.\\n1.복사된 스크립트를 해당 게시글 페이지에서 F12를 눌러 개발자 도구를 열어 Console탭에 붙여넣기\\n2. 댓글 클릭 시 하이라이트 댓글 링크가 복사됩니다.');
             }).catch(() => {
                 prompt('키보드의 Ctrl+C 또는 마우스 오른쪽의 복사하기를 이용해주세요.', commentUrl);
             })
@@ -167,16 +167,22 @@
                 prompt('키보드의 Ctrl+C 또는 마우스 오른쪽의 복사하기를 이용해주세요.', commentUrl);
             })
         }
+
+        function helo() {
+            alert('Console 탭에서 allow pasting 입력 후 엔터 한 뒤 다시 붙여넣기 하면 됩니다.')
+        }
     </script>
 </head>
 
 <body>
+    <button type="button" onclick="help()">개발자 도구 붙여넣기가 안될 때</button>
+
     <div>
         <input type="text" id="url" placeholder="게시글 주소" />
         <input type="text" id="user_id" placeholder="찾을 댓글 작성자 아이디" />
 
         <button type="button" onclick="getComment()">댓글 찾기</button>
-        <button type="button" onclick="copyFanBoard()">댓글 찾기(애청자 게시판)</button>
+        <!-- <button type="button" onclick="copyFanBoard()">댓글 찾기(애청자 게시판)</button> -->
     </div>
 
     <div>
