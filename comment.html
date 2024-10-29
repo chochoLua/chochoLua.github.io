@@ -151,7 +151,7 @@
             await getComment();
             `
             navigator.clipboard.writeText(fn).then(() => {
-                alert('애청자 게시글입니다.\\n1.복사된 스크립트를 해당 게시글 페이지에서 F12를 눌러 개발자 도구를 열어 Console탭에 붙여넣기\\n2. 댓글 클릭 시 하이라이트 댓글 링크가 복사됩니다.');
+                alert('애청자 게시글입니다.\n1.복사된 스크립트를 해당 게시글 페이지에서 F12를 눌러 개발자 도구를 열어 Console탭에 붙여넣기\n2. 댓글 클릭 시 하이라이트 댓글 링크가 복사됩니다.');
             }).catch(() => {
                 prompt('키보드의 Ctrl+C 또는 마우스 오른쪽의 복사하기를 이용해주세요.', commentUrl);
             })
