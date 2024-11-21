@@ -81,7 +81,7 @@
         </div>
         <div class="form-floating mt-2 btn-group">
             <input class="form-control ml-2" type="text" id="user_id" placeholder="tachocho" />
-            <label for="user_id">댓글 작성자 아이디</label>
+            <label for="user_id">댓글 작성자 아이디 or 닉네임</label>
 
             <button type="button" class="btn" onclick="getComment()"><i
                     class="fa-solid fa-magnifying-glass"></i></button>
@@ -109,7 +109,7 @@
                 return;
             }
             if (!user_id.length) {
-                alert('댓글 작성자 아이디를 입력해주세요.');
+                alert('댓글 작성자 아이디 또는 닉네임을 입력해주세요.');
                 return;
             }
 
@@ -126,6 +126,8 @@
             }
             else {
                 const maxPage = Math.ceil(info.count.comment_cnt / 30);
+                
+                document.querySelector('#list').innerHTML = '';
 
                 for (var i = 1; i <= maxPage; i++) {
                     getList(i);
@@ -136,7 +138,7 @@
                         credentials: "include"
                     }).then(async (res) => {
                         const { data } = await res.json();
-                        const filter = data.filter((r) => r.user_id == user_id);
+                        const filter = data.filter((r) => r.user_id == user_id || r.user_nick.includes(user_id));
 
                         if (filter.length) {
                             const $list = document.querySelector('#list');
@@ -155,16 +157,13 @@
         }
 
         function copyFanBoard() {
+            const url = document.querySelector('#url').value;
             const user_id = document.querySelector('#user_id').value;
 
-
-            if (!user_id.length) {
-                alert('댓글 작성자 아이디를 입력해주세요.');
-                return;
-            }
-
             const fn = `
-                const user_id = '${user_id}'
+                var user_id = '${user_id}'
+                var url = '${url}'.replace(/\#comment_noti[0-9]+/, '');
+
                 if(!document.querySelector('#commentLayer')) {
                     const $el = document.createElement('div');
                     $el.id = 'commentLayer';
@@ -172,7 +171,7 @@
                     $el.style.background = 'white';
                     $el.style.width = '70%';
                     $el.style.height = '1000px';
-                    $el.style.display = 'flex';
+                    $el.style.display = 'none';
                     $el.style.top = 0;
                     $el.style.left = '15%';
                     $el.style.zIndex = 1001;
@@ -185,8 +184,12 @@
     
                     document.body.appendChild($el);
                 }
+                else {
+                    document.querySelector('#commentLayer').innerHTML = '';
+                }
+
                 async function getComment() {
-                    const url = location.href;
+                    const url = '${url}'.replace(/\#comment_noti[0-9]+/, '');
     
                     if (!url.length) {
                         alert('게시글 주소를 입력해주세요.');
@@ -210,21 +213,29 @@
                             credentials: "include"
                         }).then(async (res) => {
                             const { data } = await res.json();
-                            const filter = data.filter((r) => {
-                                console.log(r.user_id, user_id);
-                                return r.user_id == user_id
-                            });
+                            const filter = data.filter((r) => r.user_id == user_id || r.user_nick.includes(user_id));
     
                             if (filter.length) {
                                 const $list = document.querySelector('#commentList');
                                 $list.innerHTML = filter.map((r) => '<li style="font-size:30px;border: 1px solid #787878;box-shadow: 1px 3px rgba(0, 0, 0, 0.5);border-radius: 10px;padding: 5px 10px;margin: 5px;" onclick="copy({r.p_comment_no})">{r.comment} <i class="fa-solid fa-copy"></i></li>'.replace('{r.p_comment_no}', r.p_comment_no).replace('{r.comment}', r.comment)).join('');
+                            }
+
+                            if(page == maxPage) {
+                                const $list = document.querySelector('#commentList')
+                                if($list && $list.childElementCount > 0) {
+                                    document.querySelector('#commentLayer').style.display = 'flex';
+                                }
+                                else {
+                                    document.querySelector('div#commentLayer').remove();
+                                    alert('검색된 결과가 없습니다.')
+                                }
                             }
                         })
                     }
                 }
     
                 function copy(comment_no) {
-                    const url = location.href;
+                    const url = '${url}'.replace(/\#comment_noti[0-9]+/, '');
     
                     const commentUrl = '{url}#comment_noti{comment_no}'.replace('{url}', url).replace('{comment_no}', comment_no);
                     navigator.clipboard.writeText(commentUrl).then(() => {
@@ -246,7 +257,7 @@
         }
 
         function copy(comment_no) {
-            const url = document.querySelector('#url').value;
+            const url = document.querySelector('#url').value.replace(/\#comment_noti[0-9]+/, '');
 
             const commentUrl = `${url}#comment_noti${comment_no}`;
             navigator.clipboard.writeText(`${url}#comment_noti${comment_no}`).then(() => {
