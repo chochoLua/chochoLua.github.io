@@ -112,7 +112,7 @@ p.nick .dot {
     background: url('/src//chatbox/gift_top.png') no-repeat;
     background-size: contain;
     background-position: center;
-    top: -20px;
+    top: -18px;
     left: 50%;
     transform: translateX(-50%);
 }
