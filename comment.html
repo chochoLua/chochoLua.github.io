@@ -129,7 +129,7 @@
             // 혹시 모를 댓글 링크도 날리기
             var path = url.replace('https://ch.sooplive.co.kr/', 'https://chapi.sooplive.co.kr/api/').replace('post', 'title').replace(/\#comment_noti[0-9]+/, '');
 
-            const info = await (await fetch(path, {
+            const info = await (await fetch(`${path}/comment?page=1&orderby=reg_date&p_comment_no=&c_comment_no=&p_highlight_no=&c_highlight_no=`, {
                 credentials: "include"
             })).json();
             const { code, message } = info;
@@ -137,7 +137,7 @@
                 copyFanBoard();
             }
             else {
-                const maxPage = Math.ceil(info.count.comment_cnt / 30);
+                const maxPage = info.meta.last_page;
                 
                 document.querySelector('#list').innerHTML = '';
 
@@ -211,10 +211,10 @@
                     const list = [];
                     var path = url.replace('https://ch.sooplive.co.kr/', 'https://chapi.sooplive.co.kr/api/').replace('post', 'title');
     
-                    const info = await (await fetch(path, {
+                    const info = await (await fetch('{path}/comment?page={page}&orderby=reg_date&p_comment_no=&c_comment_no=&p_highlight_no=&c_highlight_no='.replace('{path}', path).replace('{page}', 1), {
                         credentials: "include"
                     })).json();
-                    const maxPage = Math.ceil(info.count.comment_cnt / 30);
+                    const maxPage = info.meta.last_page;
     
                     for (var i = 1; i <= maxPage; i++) {
                         getList(i);
