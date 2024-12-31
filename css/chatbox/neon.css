@@ -46,8 +46,8 @@
 #page_wrap .chat_list .chat_box p.text {
   color: #ffffff !important;
   text-shadow:
-    0 0 7px #fff, 0 0 9px #fff,
-    0 0 3px #FFF1A3, 0 0 6px #FFF1A3, 0 0 12px #FFF1A3;
+    0 0 7px #fff,/* 0 0 9px #fff,*/
+    0 0 3px #FFF1A3, 0 0 6px #FFF1A3/*, 0 0 12px #FFF1A3*/;
   ;
 }
 
