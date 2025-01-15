@@ -169,14 +169,21 @@
 
         async function xlsx() {
             await getComment('like_cnt')
+            list.sort((a, b) => {
+                if (new Date(a.reg_date) > new Date(b.reg_date)) return 1;
+                if (new Date(a.reg_date) === new Date(b.reg_date)) return 0;
+                if (new Date(a.reg_date) < new Date(b.reg_date)) return -1;
+            })
+
             const data = list.map((r) => {
-                const { user_nick, user_id, comment, like_cnt, is_pin } = r;
+                const { user_nick, user_id, comment, like_cnt, is_pin, reg_date } = r;
                 return {
                     닉네임: user_nick,
                     댓글내용: comment,
                     UP수: like_cnt,
                     채널주소: `https://ch.sooplive.co.kr/${user_id}`,
-                    고정댓글여부: is_pin ? '고정됨' : ''
+                    고정댓글여부: is_pin ? '고정됨' : '',
+                    등록일시: reg_date
                 };
             });
 
