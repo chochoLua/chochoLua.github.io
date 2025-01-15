@@ -153,7 +153,8 @@
                     list.push(...data);
                     if (data.length) {
                         const $list = document.querySelector('#list');
-                        $list.innerHTML += data.map((r) => `<div class="card" onclick="copy(${r.p_comment_no})"><div class="card-body">${r.comment}</div></div>`).join('');
+                        $list.innerHTML += data.map((r) => `<div class="card">
+                            <h4>${r.user_nick}</h4><div class="card-body">${r.comment}</div></div>`).join('');
                     }
 
                     if (document.querySelector('#list').childElementCount) {
