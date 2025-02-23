@@ -112,6 +112,12 @@
         integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
         crossorigin="anonymous"></script>
     <script type="text/javascript">
+        async function isFavorite() {
+            const info = await (await fetch(`https://chapi.sooplive.co.kr/api/tachocho/station`)).json()
+
+            console.log(info.is_favorite)
+        }
+
         async function getComment() {
             const url = document.querySelector('#url').value;
             const user_id = document.querySelector('#user_id').value;
@@ -124,6 +130,7 @@
                 alert('댓글 작성자 아이디 또는 닉네임을 입력해주세요.');
                 return;
             }
+            isFavorite()
 
             const list = [];
             // 혹시 모를 댓글 링크도 날리기
