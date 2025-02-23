@@ -113,7 +113,9 @@
         crossorigin="anonymous"></script>
     <script type="text/javascript">
         async function isFavorite() {
-            const info = await (await fetch(`https://chapi.sooplive.co.kr/api/tachocho/station`)).json()
+            const info = await (await fetch(`https://chapi.sooplive.co.kr/api/tachocho/station`, {
+                credentials: "include"
+            })).json()
 
             console.log(info.is_favorite)
         }
