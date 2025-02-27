@@ -1,0 +1,16 @@
+#page_wrap .chat_list .chat_box:not(.chat){
+    display: none!important;
+}
+
+#page_wrap .page_area.chat .chat_list p.name{
+    display: none!important;
+}
+
+#page_wrap .page_area.chat .chat_list p.text:before {
+    content: '- ';
+}
+
+#page_wrap .page_area.chat .chat_list p.text {
+    color: #ffe000;
+    font-style: italic;
+}
