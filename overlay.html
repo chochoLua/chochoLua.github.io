@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>쵸록벽지</title>
+    <style text="type/css">
+        @font-face {
+            font-family: 'Pretendard-Black';
+            src: url('https://fastly.jsdelivr.net/gh/Project-Noonnu/noonfonts_2107@1.1/Pretendard-Regular.woff') format('woff');
+            font-weight: 900;
+            font-style: normal;
+        }
+
+        .balloon {
+            font-family: 'Pretendard-Black';
+            display: inline-block;
+            position: relative;
+        }
+
+        .balloon img {
+            width: 150px;
+            max-height: 170px;
+        }
+
+        .info {
+            padding: 5px 10px;
+            border: 1px solid #bcbcbc;
+            border-radius: 10px;
+            background: #ffffff;
+            text-align: center;
+            text-shadow: -0.05em -0.05em 0em rgba(0, 0, 0, 0.8), -0.05em -0.025em 0em rgba(0, 0, 0, 0.8), -0.05em 0em 0em rgba(0, 0, 0, 0.8), -0.05em 0.025em 0em rgba(0, 0, 0, 0.8), -0.05em 0.05em 0em rgba(0, 0, 0, 0.8), -0.05em 0.075em 0em rgba(0, 0, 0, 0.8), -0.025em -0.05em 0em rgba(0, 0, 0, 0.8), -0.025em -0.025em 0em rgba(0, 0, 0, 0.8), -0.025em 0em 0em rgba(0, 0, 0, 0.8), -0.025em 0.025em 0em rgba(0, 0, 0, 0.8), -0.025em 0.05em 0em rgba(0, 0, 0, 0.8), -0.025em 0.075em 0em rgba(0, 0, 0, 0.8), 0em -0.05em 0em rgba(0, 0, 0, 0.8), 0em -0.025em 0em rgba(0, 0, 0, 0.8), 0em 0em 0.05em rgba(0, 0, 0, 0.8), 0em 0.025em 0.05em rgba(0, 0, 0, 0.8), 0em 0.05em 0.05em rgba(0, 0, 0, 0.8), 0em 0.075em 0.05em rgba(0, 0, 0, 0.8), 0.025em -0.05em 0em rgba(0, 0, 0, 0.8), 0.025em -0.025em 0em rgba(0, 0, 0, 0.8), 0.025em 0em 0.05em rgba(0, 0, 0, 0.8), 0.025em 0.025em 0.05em rgba(0, 0, 0, 0.8), 0.025em 0.05em 0.05em rgba(0, 0, 0, 0.8), 0.025em 0.075em 0.05em rgba(0, 0, 0, 0.8), 0.05em -0.05em 0em rgba(0, 0, 0, 0.8), 0.05em -0.025em 0em rgba(0, 0, 0, 0.8), 0.05em 0em 0.05em rgba(0, 0, 0, 0.8), 0.05em 0.025em 0.05em rgba(0, 0, 0, 0.8), 0.05em 0.05em 0.05em rgba(0, 0, 0, 0.8), 0.05em 0.075em 0.05em rgba(0, 0, 0, 0.8), 0.075em -0.05em 0em rgba(0, 0, 0, 0.8), 0.075em -0.025em 0em rgba(0, 0, 0, 0.8), 0.075em 0em 0.075em rgba(0, 0, 0, 0.8), 0.075em 0.025em 0.075em rgba(0, 0, 0, 0.8), 0.075em 0.05em 0.075em rgba(0, 0, 0, 0.8), 0.075em 0.075em 0.075em rgba(0, 0, 0, 0.8);
+        }
+
+        .nick {
+            color: rgb(255, 224, 92);
+        }
+
+        .message {
+            color: #ffffff;
+        }
+
+        .amount {
+            position: absolute;
+            left: 50%;
+            top: 15%;
+            transform: translateX(-50%);
+            font-size: 1.8em;
+            color: rgb(255, 0, 0);
+            font-weight: 900;
+        }
+
+        .amount:before,
+        .amount:after {
+            display: block;
+            content: attr(data-donation);
+            color: #fff;
+            -webkit-text-stroke: 0.15em #fff;
+            z-index: -1;
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .amount:after {
+            color: #000;
+            -webkit-text-stroke: 0.25em #000;
+            z-index: -2;
+        }
+    </style>
+    <script>
+        const render = (data) => {
+            const { id, nickname, amount, message, key } = data
+
+            const img = document.createElement('img')
+
+            let isAmount = false
+            if (balloon[amount]) {
+                img.src = balloon[amount]
+            }
+            else {
+                let step = 1
+                isAmount = true
+                if (Number(amount) <= 50) step = 2
+                else if (Number(amount) <= 100) step = 3
+                else if (Number(amount) <= 500) step = 4
+                else if (Number(amount) <= 1000) step = 5
+                else step = 6
+
+                img.src = `https://res.sooplive.co.kr/new_player/items/ba_step${step}.png`
+            }
+            const elBalloon = document.createElement('div')
+            elBalloon.classList.add('balloon')
+
+            const elInfo = document.createElement('div')
+            elInfo.classList.add('info')
+
+            const elAmount = document.createElement('div')
+            elAmount.classList.add('amount')
+            elAmount.innerText = amount
+            elAmount.dataset.donation = amount
+
+            const elNick = document.createElement('div')
+            elNick.classList.add('nick')
+            elNick.innerText = nickname
+
+            const elMessage = document.createElement('div')
+            elMessage.classList.add('message')
+            elMessage.innerText = '별풍선 ' + amount + '개'
+
+            elInfo.append(elNick)
+            elInfo.append(elMessage)
+
+            elBalloon.append(img)
+            elBalloon.append(elInfo)
+
+            if (isAmount) {
+                elBalloon.append(elAmount)
+            }
+            elBalloon.dataset['key'] = key
+
+            document.getElementById('content').append(elBalloon)
+        }
+
+        const renderAll = () => {
+            document.getElementById('content').innerHTML = ''
+            main.list.forEach((r) => {
+                render(r)
+            })
+        }
+
+
+        const main = {
+            list: []
+        }
+
+        const balloon = {}
+        // WebSocket 연결
+        const socket = {
+            ws: null,
+            connected: false,
+            connect() {
+                this.ws = new WebSocket('ws://localhost:3000')
+
+                this.ws.onopen = () => {
+                    this.connected = true
+                }
+                this.ws.onmessage = (event) => {
+                    const data = JSON.parse(event.data)
+                    if (data.type === 'connect') {
+                        const streamerId = data.streamerId
+                        fetch(`http://localhost:3000/api/data?streamerId=${streamerId}`)
+                            .then(async (res) => {
+                                const json = await res.json()
+                                Object.keys(json).forEach((k) => {
+                                    balloon[k] = json[k]
+                                })
+                            })
+                    }
+                    else if (data.type === 'balloon') {
+                        if (!main.list.filter((r) => r.key === data.content.key).length) {
+                            main.list = [...main.list, data.content]
+                            render(data.content)
+                        }
+                    }
+                    else if (data.type === 'remove') {
+                        const key = data.content
+                        if (key === 'all') {
+                            // document.querySelectorAll('[data-key]')
+                            main.list.splice(0, main.list.length)
+                        }
+                        else {
+                            const idx = main.list.findIndex((r) => r.key === key)
+                            main.list.splice(idx, 1)
+                            document.querySelectorAll(`[data-key=${key}]`).forEach((el) => el.remove())
+                        }
+                        renderAll()
+                    }
+                }
+                this.ws.onclose = () => {
+                    this.connected = false
+                }
+            }
+        }
+
+
+        // const onInit = () => {
+        //     main.list = [...JSON.parse(decodeURIComponent('<%=defaultList %>')) || []]
+        //     main.list.forEach((r) => {
+        //         render(r)
+        //     })
+        //     document.removeEventListener('DOMContentLoaded', onInit)
+        // }
+        // document.addEventListener('DOMContentLoaded', onInit)
+
+        setInterval(() => {
+            if (!socket.connected) {
+                socket.connect()
+            }
+        }, 1000)
+    </script>
+</head>
+
+<body>
+    <div id="content"></div>
+</body>
+
+</html>
