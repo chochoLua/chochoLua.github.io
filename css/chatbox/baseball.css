@@ -1,0 +1,6 @@
+#page_wrap .chat_list .chat_box {
+    border: 2px solid #FFFFFF;
+    border-style: inset;
+    border-radius: 10px;
+    background-color: #F9D790;
+}

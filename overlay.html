@@ -149,7 +149,14 @@
                 }
                 this.ws.onmessage = (event) => {
                     const data = JSON.parse(event.data)
-                    if (data.type === 'connect') {
+
+                    if (data.type === 'initData') {
+                        main.list = [...JSON.parse(decodeURIComponent(data.content)) || []]
+                        main.list.forEach((r) => {
+                            render(r)
+                        })
+                    }
+                    else if (data.type === 'connect') {
                         const streamerId = data.streamerId
                         fetch(`http://localhost:3000/api/data?streamerId=${streamerId}`)
                             .then(async (res) => {
