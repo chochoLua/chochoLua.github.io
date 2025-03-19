@@ -155,16 +155,12 @@
                         main.list.forEach((r) => {
                             render(r)
                         })
+                        this.streamerId = data.streamerId
+                        this.getData()
                     }
                     else if (data.type === 'connect') {
-                        const streamerId = data.streamerId
-                        fetch(`http://localhost:3000/api/data?streamerId=${streamerId}`)
-                            .then(async (res) => {
-                                const json = await res.json()
-                                Object.keys(json).forEach((k) => {
-                                    balloon[k] = json[k]
-                                })
-                            })
+                        this.streamerId = data.streamerId
+                        this.getData()
                     }
                     else if (data.type === 'balloon') {
                         if (!main.list.filter((r) => r.key === data.content.key).length) {
@@ -189,18 +185,19 @@
                 this.ws.onclose = () => {
                     this.connected = false
                 }
+            },
+            getData() {
+                if (this.streamerId) {
+                    fetch(`http://localhost:3000/api/data?streamerId=${this.streamerId}`)
+                        .then(async (res) => {
+                            const json = await res.json()
+                            Object.keys(json).forEach((k) => {
+                                balloon[k] = json[k]
+                            })
+                        })
+                }
             }
         }
-
-
-        // const onInit = () => {
-        //     main.list = [...JSON.parse(decodeURIComponent('<%=defaultList %>')) || []]
-        //     main.list.forEach((r) => {
-        //         render(r)
-        //     })
-        //     document.removeEventListener('DOMContentLoaded', onInit)
-        // }
-        // document.addEventListener('DOMContentLoaded', onInit)
 
         setInterval(() => {
             if (!socket.connected) {
