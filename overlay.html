@@ -141,6 +141,8 @@
         const socket = {
             ws: null,
             connected: false,
+            streamerId: '',
+            imageList: [],
             connect() {
                 this.ws = new WebSocket('ws://localhost:3000')
 
@@ -149,18 +151,24 @@
                 }
                 this.ws.onmessage = (event) => {
                     const data = JSON.parse(event.data)
-
                     if (data.type === 'initData') {
                         main.list = [...JSON.parse(decodeURIComponent(data.content)) || []]
-                        main.list.forEach((r) => {
-                            render(r)
-                        })
                         this.streamerId = data.streamerId
-                        this.getData()
+                        this.imageList = data.imageList
+                        if (this.streamerId) {
+                            this.getData().then(() => {
+                                this.getImage()
+                            })
+                        }
                     }
                     else if (data.type === 'connect') {
                         this.streamerId = data.streamerId
-                        this.getData()
+                        this.imageList = data.imageList
+                        if (this.streamerId) {
+                            this.getData().then(() => {
+                                this.getImage()
+                            })
+                        }
                     }
                     else if (data.type === 'balloon') {
                         if (!main.list.filter((r) => r.key === data.content.key).length) {
@@ -181,21 +189,33 @@
                         }
                         renderAll()
                     }
+                    else if (data.type === 'image') {
+                        this.imageList = data.imageList
+                        if (this.streamerId) {
+                            this.getData().then(() => {
+                                this.getImage()
+                            })
+                        }
+                    }
                 }
                 this.ws.onclose = () => {
                     this.connected = false
                 }
             },
             getData() {
-                if (this.streamerId) {
-                    fetch(`http://localhost:3000/api/data?streamerId=${this.streamerId}`)
-                        .then(async (res) => {
-                            const json = await res.json()
-                            Object.keys(json).forEach((k) => {
-                                balloon[k] = json[k]
-                            })
+                return fetch(`http://localhost:3000/api/data?streamerId=${this.streamerId}`)
+                    .then(async (res) => {
+                        const json = await res.json()
+                        Object.keys(json).forEach((k) => {
+                            balloon[k] = json[k]
                         })
-                }
+                    })
+            },
+            getImage() {
+                this.imageList.forEach((r) => {
+                    balloon[r.amount] = r.url
+                })
+                renderAll()
             }
         }
 
