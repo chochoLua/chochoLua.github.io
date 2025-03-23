@@ -72,6 +72,11 @@
         }
     </style>
     <script>
+        const config = {
+            align: 'LEFT',
+            stack: 'NONE'
+        }
+
         const render = (data) => {
             const { id, nickname, amount, message, key } = data
 
@@ -111,27 +116,55 @@
             elMessage.classList.add('message')
             elMessage.innerText = '별풍선 ' + amount + '개'
 
+            elBalloon.dataset['key'] = key
+            elBalloon.dataset['nick'] = nickname
+            elBalloon.dataset['amount'] = amount
+
             elInfo.append(elNick)
             elInfo.append(elMessage)
+            if (config.stack === 'NONE') {
+                elBalloon.append(img)
+                elBalloon.append(elInfo)
 
-            elBalloon.append(img)
-            elBalloon.append(elInfo)
+                if (isAmount) {
+                    elBalloon.append(elAmount)
+                }
 
-            if (isAmount) {
-                elBalloon.append(elAmount)
+                document.getElementById('content').append(elBalloon)
             }
-            elBalloon.dataset['key'] = key
+            else if (config.stack === 'NICK') {
+                const elFilter = document.querySelector(`[data-nick='${nickname}']`)
+                if (elFilter) {
+                    elFilter.append(elInfo)
+                }
+                else {
+                    elBalloon.append(img)
+                    elBalloon.append(elInfo)
 
-            document.getElementById('content').append(elBalloon)
+                    document.getElementById('content').append(elBalloon)
+                }
+            }
+            else if (config.stack === 'AMOUNT') {
+                const elFilter = document.querySelector(`[data-amount='${amount}']`)
+                if(elFilter) {
+                    elFilter.append(elInfo)
+                }
+                else {
+                    elBalloon.append(img)
+                    elBalloon.append(elInfo)
+
+                    document.getElementById('content').append(elBalloon)
+                }
+            }
         }
 
         const renderAll = () => {
             document.getElementById('content').innerHTML = ''
+            document.getElementById('content').style.direction = config.align === 'LEFT' ? 'ltr' : 'rtl'
             main.list.forEach((r) => {
                 render(r)
             })
         }
-
 
         const main = {
             list: []
@@ -155,7 +188,9 @@
                     if (data.type === 'initData') {
                         main.list = [...JSON.parse(decodeURIComponent(data.content)) || []]
                         this.streamerId = data.streamerId
-                        this.imageList = data.imageList
+                        this.imageList = data.imageList || []
+                        config.align = data.align || 'LEFT'
+                        config.stack = data.stack || 'NONE'
                         if (this.streamerId) {
                             this.getData().then(() => {
                                 this.getImage()
@@ -163,8 +198,11 @@
                         }
                     }
                     else if (data.type === 'connect') {
+                        main.list = [...JSON.parse(decodeURIComponent(data.content)) || []]
                         this.streamerId = data.streamerId
-                        this.imageList = data.imageList
+                        this.imageList = data.imageList || []
+                        config.align = data.align
+                        config.stack = data.stack
                         if (this.streamerId) {
                             this.getData().then(() => {
                                 this.getImage()
