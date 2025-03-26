@@ -1,6 +1,164 @@
-#page_wrap .chat_list .chat_box {
-    border: 2px solid #FFFFFF;
-    border-style: inset;
-    border-radius: 10px;
-    background-color: #F9D790;
+:root {
+    --chat-color: #FFF1A3;
+    --nick-color: #864733;
 }
+
+/* #region 위플랩 */
+
+#page_wrap .chat_list {
+    left: unset !important;
+    right: 0 !important;
+    width: auto !important;
+    display: flex;
+    flex-direction: row;
+    padding-right: 1.5em !important;
+}
+
+#page_wrap .chat_list .chat_box {
+    margin-bottom: 15px !important;
+}
+
+
+#page_wrap .chat_list .chat_box:not(.chat) {
+    display: flex;
+    flex-direction: column;
+    min-width: 480px;
+    padding-top: 1em;
+    margin-top: 1.5em;
+    justify-content: end;
+}
+
+#page_wrap .chat_list .chat_box.chat {
+    display: flex;
+    flex-direction: column;
+    margin-left: 2em;
+    justify-content: end;
+}
+
+#page_wrap .chat_list .chat_box.chat .inner_box {
+    display: flex !important;
+    flex-direction: column-reverse !important;
+    padding-right: 1em !important;
+}
+
+#page_wrap .chat_list .chat_box.chat .inner_box::before {
+    position: absolute;
+    left: 0;
+    top: -0.75em;
+    display: block;
+    width: 1.5em;
+    height: 1.5em;
+    z-index: 1;
+}
+
+#page_wrap .chat_list .chat_box.chat:nth-of-type(2n) .inner_box::before {
+    content: "🧢" !important;
+}
+
+#page_wrap .chat_list .chat_box.chat:nth-of-type(2n+1) .inner_box::before {
+    content: "⚾" !important;
+}
+
+#page_wrap .chat_list .chat_box.chat p {
+    white-space: nowrap !important;
+}
+
+#page_wrap .chat_list .chat_box.chat p.name {
+    position: relative;
+    width: 100%;
+}
+
+#page_wrap .chat_list .chat_box.chat p.name .nick {
+    display: none;
+    background: var(--nick-color);
+    color: #ffffff !important;
+    text-shadow: none;
+    border-radius: 20px;
+    padding: 5px 15px;
+}
+
+#page_wrap .chat_list .chat_box.chat p.name::after {
+    content: "" !important;
+    position: absolute;
+    background: url('/src/chatbox/puding2.png') no-repeat;
+    background-size: contain !important;
+    right: -0.75em;
+    top: -0.75em;
+    display: block;
+    width: 1.5em;
+    height: 1.5em;
+    z-index: 1;
+}
+
+#page_wrap .icon_platform,
+#page_wrap .icon_badge {
+    display: none !important;
+}
+
+#page_wrap .chat_list .chat_box.chat p.text {
+    display: block !important;
+    color: #000000 !important;
+    text-shadow: none !important;
+    background: #ffffff;
+    border-radius: 30px;
+    padding: 10px 20px;
+}
+
+#page_wrap .chat_list .chat_box .inner_box {
+    position: relative;
+}
+
+#page_wrap .chat_list .chat_box:not(.chat) .inner_box {
+    border: 4px solid var(--nick-color) !important;
+    border-radius: 3.5em 3.5em 0.8em 0.8em !important;
+    background: var(--chat-color) !important;
+}
+
+#page_wrap .chat_list .chat_box.text .inner_box {
+    display: flex;
+    min-height: 120px;
+    justify-content: center;
+    align-items: center;
+}
+
+#page_wrap .chat_list .chat_box:not(.chat) .inner_box .donation_box {
+    border: none !important;
+    background: none !important;
+}
+
+#page_wrap .chat_list .chat_box:not(.chat) .inner_box .donation_box {
+    background: var(--nick-color);
+    border-radius: 0.4em 0.4em 0 0;
+}
+
+#page_wrap .chat_list .chat_box:not(.chat) .inner_box:before {
+    content: "";
+    position: absolute;
+    z-index: 1;
+    display: block;
+    width: 100%;
+    height: 48px;
+    background: url('/src/chatbox/gift_top.png') no-repeat;
+    background-size: contain;
+    background-position: center;
+    top: -48px;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+#page_wrap .chat_list .chat_box:not(.chat) .inner_box:after {
+    content: "";
+    position: absolute;
+    display: block;
+    background: url('/src/chatbox/gift_deco.png') no-repeat;
+    background-size: cover;
+    background-position: center;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 108px;
+    height: 81px;
+    top: -60px;
+    z-index: 1;
+}
+
+/* #endregion */
