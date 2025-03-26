@@ -1,0 +1,44 @@
+#page_wrap .chat_list .chat_box {
+    margin-top: 8px;
+    padding: 0 !important;
+    border: 4px solid #000000;
+    border-radius: 10px;
+}
+
+#page_wrap .chat_list .chat_box .inner_box {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    border: 6px solid #555756;
+    border-radius: 4px;
+    background: #212121;
+    padding: 0.3em 0.5em 0.3em 3em;
+}
+
+#page_wrap .chat_list .chat_box.chat .inner_box::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 0.75em;
+    margin: 0 auto;
+    width: 1.5em;
+    height: 1.5em;
+    transform: translateY(-0.75em);
+}
+
+#page_wrap .chat_list .chat_box.chat:nth-of-type(2n) .inner_box:before {
+    content: "💎";
+}
+
+#page_wrap .chat_list .chat_box.chat:nth-of-type(2n+1) .inner_box:before {
+    content: "⛏️";
+}
+
+#page_wrap .page_area.chat p.name {
+    margin-right: 0.5em !important;
+}
+
+#page_wrap .page_area.chat p.name .icon_platform,
+#page_wrap .page_area.chat p.name .icon_badge {
+    display: none !important;
+}
