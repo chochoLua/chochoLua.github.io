@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+</head>
+
+<body>
+    <div class="flex p-4">
+        <div id="taLineUp" class="flex-1 p-2 h-[150px]"></div>
+    </div>
+
+    <script type="text/javascript">
+        const date = new Date();
+        const yyyy = date.getFullYear();
+        var MM = (date.getMonth() + 1).toString();
+        var dd = date.getDate().toString();
+        if (parseInt(MM) < 10) {
+            MM = `0${MM}`;
+        }
+        if (parseInt(dd) < 10) {
+            dd = `0${dd}`;
+        }
+
+
+        const taLineUp = document.getElementById('taLineUp')
+
+        const getPosition = (position) => {
+            if (position.includes('지명타자')) {
+                return 'DH';
+            }
+            else if (position.includes('우익수')) {
+                return 'RF';
+            }
+            else if (position.includes('좌익수')) {
+                return 'LF';
+            }
+            else if (position.includes('1루수')) {
+                return '1B';
+            }
+            else if (position.includes('2루수')) {
+                return '2B';
+            }
+            else if (position.includes('3루수')) {
+                return '3B';
+            }
+            else if (position.includes('포수')) {
+                return 'C';
+            }
+            else if (position.includes('유격수')) {
+                return 'SS';
+            }
+            else if (position.includes('중견수')) {
+                return 'CF';
+            }
+            return '';
+        }
+
+        fetch(`https://loa-on.snorlaxh.workers.dev/lineup/${yyyy}-${MM}-${dd}`).then(async (res) => {
+            const json = await res.json();
+
+            const ss = json.data.bands[0].items[0].away.name === '삼성' ? json.data.bands[0].items[0].away : json.data.bands[0].items[0].home;
+
+            taLineUp.innerHTML = ss.lineup.filter(r => r.hasOwnProperty('battingOrder')).map((r) => {
+                return `${r.name}(${getPosition(r.position)})`;
+            }).join(' - ');
+        });
+    </script>
+</body>
+
+</html>
