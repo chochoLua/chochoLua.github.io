@@ -74,7 +74,6 @@
 #page_wrap .chat_list .chat_box.chat p.name::after {
     content: "" !important;
     position: absolute;
-    background: url('/src/chatbox/puding2.png') no-repeat;
     background-size: contain !important;
     right: -0.75em;
     top: -0.75em;
@@ -82,6 +81,19 @@
     width: 1.5em;
     height: 1.5em;
     z-index: 1;
+}
+
+#page_wrap .chat_list .chat_box.chat:nth-of-type(4n+1) p.name::after {
+    background: url('/src/chatbox/b_puding1.png') no-repeat;
+}
+#page_wrap .chat_list .chat_box.chat:nth-of-type(4n+2) p.name::after {
+    background: url('/src/chatbox/b_puding2.png') no-repeat;
+}
+#page_wrap .chat_list .chat_box.chat:nth-of-type(4n+3) p.name::after {
+    background: url('/src/chatbox/b_puding3.png') no-repeat;
+}
+#page_wrap .chat_list .chat_box.chat:nth-of-type(4n+4) p.name::after {
+    background: url('/src/chatbox/b_puding4.png') no-repeat;
 }
 
 #page_wrap .icon_platform,
