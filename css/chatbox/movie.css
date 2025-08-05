@@ -14,3 +14,7 @@
     color: #ffe000;
     font-style: italic;
 }
+
+#page_wrap .chat_list .chat_box.chat .inner_box {
+    overflow: unset!important;
+}

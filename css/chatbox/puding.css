@@ -23,6 +23,7 @@
     display: flex;
     flex-direction: column;
     margin-left: 2em;
+    overflow: unset !important;
 }
 
 #page_wrap .chat_list .chat_box.chat .inner_box:after {

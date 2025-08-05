@@ -39,6 +39,7 @@
     display: flex !important;
     flex-direction: column-reverse !important;
     padding-right: 1em !important;
+    overflow: unset !important;
 }
 
 #page_wrap .chat_list .chat_box.chat p {
