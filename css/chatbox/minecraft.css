@@ -13,9 +13,6 @@
     border-radius: 4px;
     background: #212121;
     padding: 0.3em 0.5em 0.3em 3em;
-}
-
-#page_wrap .chat_list .chat_box.chat .inner_box {
     overflow: unset!important;
 }
 

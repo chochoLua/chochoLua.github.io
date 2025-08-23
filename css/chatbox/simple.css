@@ -68,9 +68,6 @@
 
 #page_wrap .chat_list .chat_box .inner_box {
     position: relative;
-}
-
-#page_wrap .chat_list .chat_box.chat .inner_box {
     overflow: unset!important;
 }
 
