@@ -140,7 +140,7 @@
             // 혹시 모를 댓글 링크도 날리기
             const FETCH_COMMENT = `https://chapi.sooplive.co.kr/api/`
             const pattern = /^https:\/\/www\.sooplive\.co\.kr\/station\/([^\/]+)\/post\/([^\/#?]+)(?:[#?].*)?$/;
-            const match = document.URL.match(pattern)
+            const match = url.match(pattern)
 
             if (!match) {
                 console.error('패턴에 일치하지 않는 URL');
@@ -231,7 +231,7 @@
 
                     const FETCH_COMMENT = https://chapi.sooplive.co.kr/api/
                     const pattern = /^https:\/\/www\.sooplive\.co\.kr\/station\/([^\/]+)\/post\/([^\/#?]+)(?:[#?].*)?$/;
-                    const match = document.URL.match(pattern)
+                    const match = url.match(pattern)
 
                     if (!match) {
                         console.error('패턴에 일치하지 않는 URL');
