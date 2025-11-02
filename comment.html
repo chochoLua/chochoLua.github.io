@@ -11,22 +11,24 @@
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-L2P0YZHQ11"></script>
     <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-    
-      gtag('config', 'G-L2P0YZHQ11');
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-L2P0YZHQ11');
     </script>
     <style>
         .popover {
-            --bs-popover-body-color: #ffffff!important;
-            --bs-popover-bg: #80A99B!important;
+            --bs-popover-body-color: #ffffff !important;
+            --bs-popover-bg: #80A99B !important;
         }
 
         html {
             margin: 0;
-            height: 100%;;
+            height: 100%;
+            ;
         }
+
         body {
             width: 100%;
             height: 100%;
@@ -65,7 +67,7 @@
             margin: 5px;
         }
 
-        footer{
+        footer {
             text-align: center;
             margin: 1em;
         }
@@ -136,9 +138,19 @@
 
             const list = [];
             // 혹시 모를 댓글 링크도 날리기
-            var path = url.replace('https://ch.sooplive.co.kr/', 'https://chapi.sooplive.co.kr/api/').replace('post', 'title').replace(/\#comment_noti[0-9]+/, '');
+            const FETCH_COMMENT = `https://chapi.sooplive.co.kr/api/`
+            const pattern = /^https:\/\/www\.sooplive\.co\.kr\/station\/([^\/]+)\/post\/([^\/#?]+)(?:[#?].*)?$/;
+            const match = document.URL.match(pattern)
 
-            const info = await (await fetch(`${path}/comment?page=1&orderby=reg_date&p_comment_no=&c_comment_no=&p_highlight_no=&c_highlight_no=`, {
+            if (!match) {
+                console.error('패턴에 일치하지 않는 URL');
+                return
+            }
+
+            const streamer = match[1];
+            const title_no = match[2];
+
+            const info = await (await fetch(`${FETCH_COMMENT}${streamer}/title/${title_no}/comment?page=1&orderby=reg_date&p_comment_no=&c_comment_no=&p_highlight_no=&c_highlight_no=`, {
                 credentials: "include"
             })).json();
             const { code, message } = info;
@@ -147,7 +159,7 @@
             }
             else {
                 const maxPage = info.meta.last_page;
-                
+
                 document.querySelector('#list').innerHTML = '';
 
                 for (var i = 1; i <= maxPage; i++) {
@@ -155,7 +167,7 @@
                 }
 
                 function getList(page) {
-                    fetch(`${path}/comment?page=${page}&orderby=reg_date&p_comment_no=&c_comment_no=&p_highlight_no=&c_highlight_no=`, {
+                    fetch(`${FETCH_COMMENT}${streamer}/title/${title_no}/comment?page=${page}&orderby=reg_date&p_comment_no=&c_comment_no=&p_highlight_no=&c_highlight_no=`, {
                         credentials: "include"
                     }).then(async (res) => {
                         const { data } = await res.json();
@@ -216,11 +228,22 @@
                         alert('게시글 주소를 입력해주세요.');
                         return;
                     }
+
+                    const FETCH_COMMENT = https://chapi.sooplive.co.kr/api/
+                    const pattern = /^https:\/\/www\.sooplive\.co\.kr\/station\/([^\/]+)\/post\/([^\/#?]+)(?:[#?].*)?$/;
+                    const match = document.URL.match(pattern)
+
+                    if (!match) {
+                        console.error('패턴에 일치하지 않는 URL');
+                        return
+                    }
+
+                    const streamer = match[1];
+                    const title_no = match[2];
     
                     const list = [];
-                    var path = url.replace('https://ch.sooplive.co.kr/', 'https://chapi.sooplive.co.kr/api/').replace('post', 'title');
     
-                    const info = await (await fetch('{path}/comment?page={page}&orderby=reg_date&p_comment_no=&c_comment_no=&p_highlight_no=&c_highlight_no='.replace('{path}', path).replace('{page}', 1), {
+                    const info = await (await fetch('{path}{streamer}/title/{title_no}/comment?page={page}&orderby=reg_date&p_comment_no=&c_comment_no=&p_highlight_no=&c_highlight_no='.replace('{path}', FETCH_COMMENT).replace('{streamer}', streamer).replace('{title_no}', title_no).replace('{page}', 1), {
                         credentials: "include"
                     })).json();
                     const maxPage = info.meta.last_page;
@@ -299,7 +322,7 @@
             }, 3000)
 
             document.querySelector('#user_id').onkeyup = (e) => {
-                if(e.keyCode == 13 || e.which == 13) {
+                if (e.keyCode == 13 || e.which == 13) {
                     getComment();
                 }
             }
