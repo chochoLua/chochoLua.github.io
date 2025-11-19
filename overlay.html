@@ -209,6 +209,7 @@
                         this.imageList = data.imageList || []
                         config.align = data.align || 'LEFT'
                         config.stack = data.stack || 'NONE'
+                        config.position = data.position || 'TOP'
                         if (this.streamerId) {
                             this.getData().then(() => {
                                 this.getImage()
@@ -221,6 +222,7 @@
                         this.imageList = data.imageList || []
                         config.align = data.align
                         config.stack = data.stack
+                        config.position = data.position
                         if (this.streamerId) {
                             this.getData().then(() => {
                                 this.getImage()
