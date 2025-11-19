@@ -173,12 +173,8 @@
         const renderAll = () => {
             document.getElementById('content').innerHTML = ''
             document.getElementById('content').style.direction = config.align === 'LEFT' ? 'ltr' : 'rtl'
-            if (config.position === 'TOP') {
-                document.getElementById('content').style.top = config.position === 'TOP' ? '0' : ''
-            }
-            else if (config.position === 'BOTTOM') {
-                document.getElementById('content').style.bottom = config.position === 'BOTTOM' ? '0' : ''
-            }
+            document.getElementById('content').style.top = config.position === 'TOP' ? '0' : ''
+            document.getElementById('content').style.bottom = config.position === 'BOTTOM' ? '0' : ''
             main.list.forEach((r) => {
                 render(r)
             })
