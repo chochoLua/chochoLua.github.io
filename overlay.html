@@ -125,7 +125,7 @@
         const main = {
             list: [],
             manualPositions: {},
-            detachedKeys: {}
+            separatedKeys: {}
         }
 
         const balloon = {}
@@ -154,7 +154,7 @@
             return `https://res.sooplive.co.kr/new_player/items/ba_step${step}.png`
         }
 
-        function isCustomImage(amount) {
+        function hasCustomImage(amount) {
             return !!balloon[amount]
         }
 
@@ -165,57 +165,78 @@
             return img
         }
 
-        function ensureBalloonImage(elBalloon) {
-            let img = null
+        function getDirectInfos(elBalloon) {
+            const arr = []
+            if (!elBalloon) return arr
+
+            for (let i = 0; i < elBalloon.children.length; i++) {
+                const child = elBalloon.children[i]
+                if (child.classList && child.classList.contains('info')) {
+                    arr.push(child)
+                }
+            }
+            return arr
+        }
+
+        function getDirectImage(elBalloon) {
+            if (!elBalloon) return null
 
             for (let i = 0; i < elBalloon.children.length; i++) {
                 const child = elBalloon.children[i]
                 if (child.tagName && child.tagName.toLowerCase() === 'img') {
-                    img = child
-                    break
+                    return child
                 }
             }
+            return null
+        }
 
+        function getDirectAmount(elBalloon) {
+            if (!elBalloon) return null
+
+            for (let i = 0; i < elBalloon.children.length; i++) {
+                const child = elBalloon.children[i]
+                if (child.classList && child.classList.contains('amount')) {
+                    return child
+                }
+            }
+            return null
+        }
+
+        function ensureBalloonImage(elBalloon) {
+            let img = getDirectImage(elBalloon)
             if (!img) {
                 img = createBalloonImage(elBalloon.dataset.amount)
                 elBalloon.insertBefore(img, elBalloon.firstChild)
             } else if (!img.getAttribute('src')) {
                 img.src = getBalloonImageSrc(elBalloon.dataset.amount)
             }
-
             return img
         }
 
         function ensureAmountLabel(elBalloon) {
-            if (isCustomImage(elBalloon.dataset.amount)) {
-                const exists = elBalloon.querySelector('.amount')
-                if (exists) {
-                    exists.remove()
-                }
+            const amount = elBalloon.dataset.amount
+
+            if (hasCustomImage(amount)) {
+                const oldAmount = getDirectAmount(elBalloon)
+                if (oldAmount) oldAmount.remove()
                 return null
             }
 
-            let elAmount = null
-            for (let i = 0; i < elBalloon.children.length; i++) {
-                const child = elBalloon.children[i]
-                if (child.classList && child.classList.contains('amount')) {
-                    elAmount = child
-                    break
-                }
-            }
-
+            let elAmount = getDirectAmount(elBalloon)
             if (!elAmount) {
                 elAmount = document.createElement('div')
                 elAmount.classList.add('amount')
-                elAmount.innerText = elBalloon.dataset.amount
-                elAmount.dataset.donation = elBalloon.dataset.amount
                 elBalloon.append(elAmount)
-            } else {
-                elAmount.innerText = elBalloon.dataset.amount
-                elAmount.dataset.donation = elBalloon.dataset.amount
             }
 
+            elAmount.innerText = amount
+            elAmount.dataset.donation = amount
             return elAmount
+        }
+
+        function normalizeBalloonDecorations(elBalloon) {
+            ensureBalloonImage(elBalloon)
+            ensureAmountLabel(elBalloon)
         }
 
         function createBalloonShell(data, overrideKey) {
@@ -257,21 +278,31 @@
             return elInfo
         }
 
-        function getDirectInfos(elBalloon) {
-            const result = []
-            for (let i = 0; i < elBalloon.children.length; i++) {
-                const child = elBalloon.children[i]
-                if (child.classList && child.classList.contains('info')) {
-                    result.push(child)
-                }
-            }
-            return result
+        function appendInfoToBalloon(elBalloon, elInfo) {
+            normalizeBalloonDecorations(elBalloon)
+            elBalloon.append(elInfo)
+            normalizeBalloonDecorations(elBalloon)
         }
 
-        function updateBalloonKeyFromInfo(elBalloon) {
+        function updateBalloonDatasetFromFirstInfo(elBalloon) {
             const infos = getDirectInfos(elBalloon)
-            if (infos.length > 0) {
-                elBalloon.dataset.key = infos[0].dataset.key
+            if (!infos.length) return
+
+            const first = infos[0]
+            elBalloon.dataset.key = first.dataset.key
+            elBalloon.dataset.nick = first.dataset.nick
+            elBalloon.dataset.amount = first.dataset.amount
+            normalizeBalloonDecorations(elBalloon)
+        }
+
+        function removeBalloonIfEmpty(elBalloon) {
+            if (!elBalloon) return
+
+            const infos = getDirectInfos(elBalloon)
+            if (infos.length === 0) {
+                elBalloon.remove()
+            } else {
+                updateBalloonDatasetFromFirstInfo(elBalloon)
             }
         }
 
@@ -286,14 +317,14 @@
             elBalloon.style.bottom = 'auto'
         }
 
-        function makeBalloonManual(elBalloon, forceKey) {
+        function makeBalloonManual(elBalloon, saveKey) {
             const content = document.getElementById('content')
             const balloonRect = elBalloon.getBoundingClientRect()
             const contentRect = content.getBoundingClientRect()
 
             const left = balloonRect.left - contentRect.left
             const top = balloonRect.top - contentRect.top
-            const saveKey = forceKey || elBalloon.dataset.key
+            const key = saveKey || elBalloon.dataset.key
 
             elBalloon.classList.add('manual-position')
             elBalloon.style.left = left + 'px'
@@ -305,7 +336,7 @@
                 content.appendChild(elBalloon)
             }
 
-            main.manualPositions[saveKey] = { left, top }
+            main.manualPositions[key] = { left, top }
             return { left, top }
         }
 
@@ -329,10 +360,29 @@
             return { left, top }
         }
 
-        function appendInfoToBalloon(elBalloon, elInfo) {
-            ensureBalloonImage(elBalloon)
-            elBalloon.append(elInfo)
-            ensureAmountLabel(elBalloon)
+        function shouldGroupData(data) {
+            if (config.stack === 'NONE') return false
+            if (main.separatedKeys[data.key]) return false
+            return true
+        }
+
+        function getGroupingSelector(data) {
+            if (config.stack === 'NICK') {
+                return `.balloon[data-nick="${CSS.escape(data.nickname)}"]:not(.manual-position)`
+            }
+            if (config.stack === 'AMOUNT') {
+                return `.balloon[data-amount="${CSS.escape(String(data.amount))}"]:not(.manual-position)`
+            }
+            return ''
+        }
+
+        function findStackTarget(data) {
+            if (!shouldGroupData(data)) return null
+
+            const selector = getGroupingSelector(data)
+            if (!selector) return null
+
+            return document.querySelector(selector)
         }
 
         function createDetachedBalloonFromInfo(elInfo, sourceBalloon) {
@@ -348,29 +398,82 @@
             appendInfoToBalloon(newBalloon, elInfo)
             document.getElementById('content').append(newBalloon)
 
-            main.detachedKeys[detachedKey] = true
-
-            updateBalloonKeyFromInfo(sourceBalloon)
-            ensureBalloonImage(sourceBalloon)
-            ensureAmountLabel(sourceBalloon)
+            main.separatedKeys[detachedKey] = true
+            updateBalloonDatasetFromFirstInfo(sourceBalloon)
+            removeBalloonIfEmpty(sourceBalloon)
 
             return newBalloon
         }
 
-        function findStackTarget(data) {
-            if (main.detachedKeys[data.key]) {
-                return null
-            }
+        function isMergeCompatible(sourceInfo, targetBalloon) {
+            if (!sourceInfo || !targetBalloon) return false
+            if (config.stack !== 'NICK' && config.stack !== 'AMOUNT') return false
 
             if (config.stack === 'NICK') {
-                return document.querySelector(`.balloon[data-nick="${data.nickname}"]:not(.manual-position)`)
+                return targetBalloon.dataset.nick === sourceInfo.dataset.nick
             }
 
             if (config.stack === 'AMOUNT') {
-                return document.querySelector(`.balloon[data-amount="${data.amount}"]:not(.manual-position)`)
+                return String(targetBalloon.dataset.amount) === String(sourceInfo.dataset.amount)
             }
 
-            return null
+            return false
+        }
+
+        function findMergeTarget(sourceInfo, draggedBalloon, clientX, clientY) {
+            if (config.stack !== 'NICK' && config.stack !== 'AMOUNT') return null
+
+            const elements = document.elementsFromPoint(clientX, clientY)
+            for (let i = 0; i < elements.length; i++) {
+                const el = elements[i]
+                const targetBalloon = el.closest ? el.closest('.balloon') : null
+                if (!targetBalloon) continue
+                if (targetBalloon === draggedBalloon) continue
+                if (!isMergeCompatible(sourceInfo, targetBalloon)) continue
+                return targetBalloon
+            }
+
+            const all = Array.from(document.querySelectorAll('.balloon'))
+            let best = null
+            let bestDistance = Infinity
+
+            all.forEach((candidate) => {
+                if (candidate === draggedBalloon) return
+                if (!isMergeCompatible(sourceInfo, candidate)) return
+
+                const r = candidate.getBoundingClientRect()
+                const cx = r.left + r.width / 2
+                const cy = r.top + r.height / 2
+                const dx = cx - clientX
+                const dy = cy - clientY
+                const dist = Math.sqrt(dx * dx + dy * dy)
+
+                const nearX = clientX >= r.left - 40 && clientX <= r.right + 40
+                const nearY = clientY >= r.top - 40 && clientY <= r.bottom + 40
+
+                if ((nearX && nearY) && dist < bestDistance) {
+                    bestDistance = dist
+                    best = candidate
+                }
+            })
+
+            return best
+        }
+
+        function mergeInfoIntoBalloon(elInfo, fromBalloon, toBalloon) {
+            if (!elInfo || !toBalloon) return
+
+            appendInfoToBalloon(toBalloon, elInfo)
+
+            delete main.manualPositions[elInfo.dataset.key]
+            delete main.separatedKeys[elInfo.dataset.key]
+
+            if (fromBalloon && fromBalloon !== toBalloon) {
+                removeBalloonIfEmpty(fromBalloon)
+            }
+
+            updateBalloonDatasetFromFirstInfo(toBalloon)
+            normalizeBalloonDecorations(toBalloon)
         }
 
         function bindInfoDrag(elInfo) {
@@ -401,6 +504,10 @@
                     const rect = dragBalloon.getBoundingClientRect()
                     offsetX = clientX - rect.left
                     offsetY = clientY - rect.top
+
+                    if (isStackMode) {
+                        main.separatedKeys[dragKey] = true
+                    }
                 } else {
                     dragBalloon = null
                     dragKey = elInfo.dataset.key
@@ -443,6 +550,18 @@
                     offsetY = Math.min(rect.height / 2, 30)
 
                     moveBalloonToPointer(dragBalloon, clientX, clientY, offsetX, offsetY, dragKey)
+                }
+
+                if (dragBalloon) {
+                    const mergeTarget = findMergeTarget(elInfo, dragBalloon, clientX, clientY)
+
+                    if (mergeTarget) {
+                        mergeInfoIntoBalloon(elInfo, dragBalloon, mergeTarget)
+                    } else {
+                        if (config.stack === 'NICK' || config.stack === 'AMOUNT') {
+                            main.separatedKeys[dragKey] = true
+                        }
+                    }
                 }
 
                 pendingSplit = false
@@ -490,7 +609,7 @@
             const elInfo = createInfoElement(data)
             const content = document.getElementById('content')
 
-            if (config.stack === 'NONE') {
+            if (config.stack === 'NONE' || main.separatedKeys[data.key]) {
                 const elBalloon = createBalloonShell(data)
                 appendInfoToBalloon(elBalloon, elInfo)
                 content.append(elBalloon)
@@ -502,7 +621,7 @@
 
             if (stackTarget) {
                 appendInfoToBalloon(stackTarget, elInfo)
-                updateBalloonKeyFromInfo(stackTarget)
+                updateBalloonDatasetFromFirstInfo(stackTarget)
                 return
             }
 
@@ -519,15 +638,12 @@
             content.style.top = config.position === 'TOP' ? '0' : ''
             content.style.bottom = config.position === 'BOTTOM' ? '0' : ''
 
-            main.detachedKeys = {}
-
             main.list.forEach((r) => {
                 render(r)
             })
 
             document.querySelectorAll('.balloon').forEach((elBalloon) => {
-                ensureBalloonImage(elBalloon)
-                ensureAmountLabel(elBalloon)
+                normalizeBalloonDecorations(elBalloon)
             })
         }
 
@@ -586,7 +702,7 @@
                         if (key === 'all') {
                             main.list.splice(0, main.list.length)
                             main.manualPositions = {}
-                            main.detachedKeys = {}
+                            main.separatedKeys = {}
                         }
                         else {
                             const idx = main.list.findIndex((r) => r.key === key)
@@ -595,7 +711,7 @@
                             }
 
                             delete main.manualPositions[key]
-                            delete main.detachedKeys[key]
+                            delete main.separatedKeys[key]
 
                             document.querySelectorAll(`[data-key="${key}"]`).forEach((el) => {
                                 el.remove()
@@ -605,7 +721,7 @@
                         renderAll()
                     }
                     else if (data.type === 'image') {
-                        this.imageList = data.imageList
+                        this.imageList = data.imageList || []
                         if (this.streamerId) {
                             this.getData().then(() => {
                                 this.getImage()
