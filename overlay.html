@@ -126,14 +126,15 @@
             filter: saturate(1.05);
         }
 
+        .balloon.split-preview {
+            position: absolute !important;
+            z-index: 1001;
+            pointer-events: none;
+        }
+
         body.drag-merge-allowed,
         body.drag-merge-allowed * {
             cursor: copy !important;
-        }
-
-        body.drag-merge-forbidden,
-        body.drag-merge-forbidden * {
-            cursor: not-allowed !important;
         }
     </style>
     <script>
@@ -271,6 +272,7 @@
             elBalloon.dataset.key = overrideKey || data.key
             elBalloon.dataset.nick = data.nickname
             elBalloon.dataset.amount = data.amount
+            bindBalloonGroupDrag(elBalloon)
             return elBalloon
         }
 
@@ -495,20 +497,16 @@
                 main.currentMergeTarget = null
             }
             document.body.classList.remove('drag-merge-allowed')
-            document.body.classList.remove('drag-merge-forbidden')
             main.dragState.canMerge = false
         }
 
         function setDragCursorState(canMerge) {
             document.body.classList.remove('drag-merge-allowed')
-            document.body.classList.remove('drag-merge-forbidden')
 
             if (!main.dragState.active) return
 
             if (canMerge) {
                 document.body.classList.add('drag-merge-allowed')
-            } else {
-                document.body.classList.add('drag-merge-forbidden')
             }
 
             main.dragState.canMerge = canMerge
@@ -526,8 +524,6 @@
                 targetBalloon.classList.add('merge-target')
                 main.currentMergeTarget = targetBalloon
                 setDragCursorState(true)
-            } else if (main.dragState.active) {
-                setDragCursorState(false)
             }
         }
 
@@ -543,6 +539,44 @@
                 elBalloon.classList.add('drag-preview')
             } else {
                 elBalloon.classList.remove('drag-preview')
+            }
+        }
+
+        function createSplitPreview(elInfo) {
+            const data = elInfo.__data || {
+                nickname: elInfo.dataset.nick,
+                amount: elInfo.dataset.amount,
+                message: '',
+                key: elInfo.dataset.key
+            }
+
+            const preview = createBalloonShell(data, '__preview__')
+            preview.classList.add('drag-preview')
+            preview.classList.add('split-preview')
+            preview.style.pointerEvents = 'none'
+
+            const img = createBalloonImage(data.amount)
+            preview.append(img)
+
+            const clonedInfo = elInfo.cloneNode(true)
+            clonedInfo.classList.remove('dragging')
+            preview.append(clonedInfo)
+
+            if (!hasCustomImage(data.amount)) {
+                const elAmount = document.createElement('div')
+                elAmount.classList.add('amount')
+                elAmount.innerText = data.amount
+                elAmount.dataset.donation = data.amount
+                preview.append(elAmount)
+            }
+
+            document.getElementById('content').append(preview)
+            return preview
+        }
+
+        function removeSplitPreview(preview) {
+            if (preview && preview.parentNode) {
+                preview.remove()
             }
         }
 
@@ -571,6 +605,7 @@
             let offsetX = 0
             let offsetY = 0
             let pendingSplit = false
+            let splitPreview = null
 
             const startDrag = (clientX, clientY) => {
                 sourceBalloon = elInfo.closest('.balloon')
@@ -604,6 +639,12 @@
                 } else {
                     dragBalloon = null
                     dragKey = elInfo.dataset.key
+
+                    splitPreview = createSplitPreview(elInfo)
+                    const previewRect = splitPreview.getBoundingClientRect()
+                    offsetX = Math.min(previewRect.width / 2, 40)
+                    offsetY = Math.min(previewRect.height / 2, 30)
+                    moveBalloonToPointer(splitPreview, clientX, clientY, offsetX, offsetY, '__preview__')
                 }
 
                 isDragging = true
@@ -616,12 +657,11 @@
                 if (dragBalloon) {
                     moveBalloonToPointer(dragBalloon, clientX, clientY, offsetX, offsetY, dragKey)
                     updateMergeHighlight(elInfo, dragBalloon, clientX, clientY)
+                } else if (splitPreview) {
+                    moveBalloonToPointer(splitPreview, clientX, clientY, offsetX, offsetY, '__preview__')
+                    updateMergeHighlight(elInfo, splitPreview, clientX, clientY)
                 } else {
-                    if (config.stack === 'NICK' || config.stack === 'AMOUNT') {
-                        setDragCursorState(false)
-                    } else {
-                        clearMergeHighlight()
-                    }
+                    clearMergeHighlight()
                 }
             }
 
@@ -632,26 +672,36 @@
                 elInfo.classList.remove('dragging')
 
                 if (pendingSplit && sourceBalloon) {
-                    dragBalloon = createDetachedBalloonFromInfo(elInfo, sourceBalloon)
-                    dragKey = elInfo.dataset.key
+                    const mergeTargetFromPreview = updateMergeHighlight(elInfo, splitPreview, clientX, clientY)
+                    removeSplitPreview(splitPreview)
+                    splitPreview = null
 
-                    const rect = dragBalloon.getBoundingClientRect()
-                    const contentRect = document.getElementById('content').getBoundingClientRect()
+                    if (mergeTargetFromPreview) {
+                        main.separatedKeys[dragKey] = true
+                        const detached = createDetachedBalloonFromInfo(elInfo, sourceBalloon)
+                        mergeInfoIntoBalloon(elInfo, detached, mergeTargetFromPreview)
+                    } else {
+                        dragBalloon = createDetachedBalloonFromInfo(elInfo, sourceBalloon)
+                        dragKey = elInfo.dataset.key
 
-                    const currentLeft = rect.left - contentRect.left
-                    const currentTop = rect.top - contentRect.top
+                        const rect = dragBalloon.getBoundingClientRect()
+                        const contentRect = document.getElementById('content').getBoundingClientRect()
 
-                    dragBalloon.classList.add('manual-position')
-                    dragBalloon.style.left = currentLeft + 'px'
-                    dragBalloon.style.top = currentTop + 'px'
-                    dragBalloon.style.right = 'auto'
-                    dragBalloon.style.bottom = 'auto'
+                        const currentLeft = rect.left - contentRect.left
+                        const currentTop = rect.top - contentRect.top
 
-                    offsetX = Math.min(rect.width / 2, 40)
-                    offsetY = Math.min(rect.height / 2, 30)
+                        dragBalloon.classList.add('manual-position')
+                        dragBalloon.style.left = currentLeft + 'px'
+                        dragBalloon.style.top = currentTop + 'px'
+                        dragBalloon.style.right = 'auto'
+                        dragBalloon.style.bottom = 'auto'
 
-                    moveBalloonToPointer(dragBalloon, clientX, clientY, offsetX, offsetY, dragKey)
-                    setDraggingPreview(dragBalloon, true)
+                        offsetX = Math.min(rect.width / 2, 40)
+                        offsetY = Math.min(rect.height / 2, 30)
+
+                        moveBalloonToPointer(dragBalloon, clientX, clientY, offsetX, offsetY, dragKey)
+                        setDraggingPreview(dragBalloon, true)
+                    }
                 }
 
                 if (dragBalloon) {
@@ -672,9 +722,11 @@
                     clearMergeHighlight()
                 }
 
+                removeSplitPreview(splitPreview)
+                splitPreview = null
+
                 main.dragState.active = false
                 document.body.classList.remove('drag-merge-allowed')
-                document.body.classList.remove('drag-merge-forbidden')
 
                 pendingSplit = false
                 sourceBalloon = null
@@ -684,6 +736,7 @@
 
             elInfo.addEventListener('mousedown', (e) => {
                 e.preventDefault()
+                e.stopPropagation()
                 startDrag(e.clientX, e.clientY)
             })
 
@@ -698,6 +751,7 @@
             elInfo.addEventListener('touchstart', (e) => {
                 const t = e.touches[0]
                 if (!t) return
+                e.stopPropagation()
                 startDrag(t.clientX, t.clientY)
             }, { passive: true })
 
@@ -714,6 +768,82 @@
                 const t = e.changedTouches && e.changedTouches[0]
                 if (t) endDrag(t.clientX, t.clientY)
                 else endDrag(0, 0)
+            })
+        }
+
+        function bindBalloonGroupDrag(elBalloon) {
+            let isDragging = false
+            let dragKey = null
+            let offsetX = 0
+            let offsetY = 0
+
+            const canStartFromTarget = (target) => {
+                if (!target) return false
+                if (target.closest('.info')) return false
+                return true
+            }
+
+            const startDrag = (clientX, clientY) => {
+                clearMergeHighlight()
+                main.dragState.active = true
+
+                dragKey = elBalloon.dataset.key
+
+                if (!elBalloon.classList.contains('manual-position')) {
+                    makeBalloonManual(elBalloon, dragKey)
+                }
+
+                const rect = elBalloon.getBoundingClientRect()
+                offsetX = clientX - rect.left
+                offsetY = clientY - rect.top
+
+                setDraggingPreview(elBalloon, true)
+                isDragging = true
+            }
+
+            const moveDrag = (clientX, clientY) => {
+                if (!isDragging) return
+                moveBalloonToPointer(elBalloon, clientX, clientY, offsetX, offsetY, dragKey)
+            }
+
+            const endDrag = () => {
+                if (!isDragging) return
+                isDragging = false
+                setDraggingPreview(elBalloon, false)
+                main.dragState.active = false
+            }
+
+            elBalloon.addEventListener('mousedown', (e) => {
+                if (!canStartFromTarget(e.target)) return
+                e.preventDefault()
+                startDrag(e.clientX, e.clientY)
+            })
+
+            document.addEventListener('mousemove', (e) => {
+                moveDrag(e.clientX, e.clientY)
+            })
+
+            document.addEventListener('mouseup', () => {
+                endDrag()
+            })
+
+            elBalloon.addEventListener('touchstart', (e) => {
+                const t = e.touches[0]
+                if (!t) return
+                if (!canStartFromTarget(e.target)) return
+                startDrag(t.clientX, t.clientY)
+            }, { passive: true })
+
+            document.addEventListener('touchmove', (e) => {
+                if (!isDragging) return
+                const t = e.touches[0]
+                if (!t) return
+                e.preventDefault()
+                moveDrag(t.clientX, t.clientY)
+            }, { passive: false })
+
+            document.addEventListener('touchend', () => {
+                endDrag()
             })
         }
 
