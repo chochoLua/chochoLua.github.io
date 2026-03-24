@@ -82,6 +82,38 @@
             -webkit-text-stroke: 0.25em #000;
             z-index: -2;
         }
+
+        #content {
+            width: 100%;
+            position: absolute;
+            min-height: 100vh;
+        }
+
+        .balloon {
+            direction: ltr;
+            font-family: 'Pretendard-Black';
+            display: inline-block;
+            position: relative;
+            user-select: none;
+        }
+
+        .balloon.manual-position {
+            position: absolute !important;
+            z-index: 999;
+        }
+
+        .info {
+            padding: 5px 10px;
+            border: 1px solid #bcbcbc;
+            border-radius: 10px;
+            background: #ffffff;
+            text-align: center;
+            cursor: grab;
+        }
+
+        .info.dragging {
+            cursor: grabbing;
+        }
     </style>
     <script>
         const config = {
@@ -90,26 +122,161 @@
             stack: 'NONE'
         }
 
-        const render = (data) => {
-            const { id, nickname, amount, message, key } = data
+        const main = {
+            list: [],
+            manualPositions: {} // key 기준 드래그 위치 저장
+        }
 
-            const img = document.createElement('img')
+        const balloon = {}
 
-            let isAmount = false
+        function getBalloonImageSrc(amount) {
             if (balloon[amount]) {
-                img.src = balloon[amount]
+                return balloon[amount]
             }
-            else {
-                let step = 1
-                isAmount = true
-                if (Number(amount) <= 50) step = 2
-                else if (Number(amount) <= 100) step = 3
-                else if (Number(amount) <= 500) step = 4
-                else if (Number(amount) <= 1000) step = 5
-                else step = 6
 
-                img.src = `https://res.sooplive.co.kr/new_player/items/ba_step${step}.png`
+            let step = 1
+            const n = Number(amount)
+
+            if (n <= 50) step = 2
+            else if (n <= 100) step = 3
+            else if (n <= 500) step = 4
+            else if (n <= 1000) step = 5
+            else step = 6
+
+            return `https://res.sooplive.co.kr/new_player/items/ba_step${step}.png`
+        }
+
+        function createBalloonImage(amount) {
+            const img = document.createElement('img')
+            img.src = getBalloonImageSrc(amount)
+            img.alt = `balloon-${amount}`
+            return img
+        }
+
+        function ensureBalloonImage(elBalloon) {
+            let img = elBalloon.querySelector('img')
+            if (!img) {
+                const amount = elBalloon.dataset.amount
+                img = createBalloonImage(amount)
+                elBalloon.insertBefore(img, elBalloon.firstChild)
+            } else if (!img.getAttribute('src')) {
+                img.src = getBalloonImageSrc(elBalloon.dataset.amount)
             }
+        }
+
+        function applyManualPosition(elBalloon, key) {
+            const pos = main.manualPositions[key]
+            if (!pos) return
+
+            elBalloon.classList.add('manual-position')
+            elBalloon.style.left = pos.left + 'px'
+            elBalloon.style.top = pos.top + 'px'
+            elBalloon.style.right = 'auto'
+            elBalloon.style.bottom = 'auto'
+        }
+
+        function enableDragByInfo(elInfo, elBalloon, key) {
+            let isDragging = false
+            let offsetX = 0
+            let offsetY = 0
+
+            const onMove = (clientX, clientY) => {
+                const content = document.getElementById('content')
+                const contentRect = content.getBoundingClientRect()
+
+                let left = clientX - contentRect.left - offsetX
+                let top = clientY - contentRect.top - offsetY
+
+                const maxLeft = Math.max(0, content.clientWidth - elBalloon.offsetWidth)
+                const maxTop = Math.max(0, content.clientHeight - elBalloon.offsetHeight)
+
+                left = Math.max(0, Math.min(left, maxLeft))
+                top = Math.max(0, Math.min(top, maxTop))
+
+                elBalloon.style.left = left + 'px'
+                elBalloon.style.top = top + 'px'
+
+                main.manualPositions[key] = { left, top }
+            }
+
+            const startDrag = (clientX, clientY) => {
+                const content = document.getElementById('content')
+                const balloonRect = elBalloon.getBoundingClientRect()
+                const contentRect = content.getBoundingClientRect()
+
+                ensureBalloonImage(elBalloon)
+
+                // 자동 정렬 상태에서 드래그 시작 시 현재 보이는 위치를 absolute로 고정
+                if (!elBalloon.classList.contains('manual-position')) {
+                    const currentLeft = balloonRect.left - contentRect.left
+                    const currentTop = balloonRect.top - contentRect.top
+
+                    elBalloon.classList.add('manual-position')
+                    elBalloon.style.left = currentLeft + 'px'
+                    elBalloon.style.top = currentTop + 'px'
+                    elBalloon.style.right = 'auto'
+                    elBalloon.style.bottom = 'auto'
+
+                    main.manualPositions[key] = {
+                        left: currentLeft,
+                        top: currentTop
+                    }
+
+                    // absolute 전환 시 DOM 끝으로 보내서 겹침 이슈 감소
+                    content.appendChild(elBalloon)
+                }
+
+                const updatedRect = elBalloon.getBoundingClientRect()
+                offsetX = clientX - updatedRect.left
+                offsetY = clientY - updatedRect.top
+
+                isDragging = true
+                elInfo.classList.add('dragging')
+            }
+
+            const stopDrag = () => {
+                isDragging = false
+                elInfo.classList.remove('dragging')
+            }
+
+            elInfo.addEventListener('mousedown', (e) => {
+                e.preventDefault()
+                startDrag(e.clientX, e.clientY)
+            })
+
+            document.addEventListener('mousemove', (e) => {
+                if (!isDragging) return
+                onMove(e.clientX, e.clientY)
+            })
+
+            document.addEventListener('mouseup', () => {
+                if (!isDragging) return
+                stopDrag()
+            })
+
+            elInfo.addEventListener('touchstart', (e) => {
+                const t = e.touches[0]
+                if (!t) return
+                startDrag(t.clientX, t.clientY)
+            }, { passive: false })
+
+            document.addEventListener('touchmove', (e) => {
+                if (!isDragging) return
+                const t = e.touches[0]
+                if (!t) return
+                e.preventDefault()
+                onMove(t.clientX, t.clientY)
+            }, { passive: false })
+
+            document.addEventListener('touchend', () => {
+                if (!isDragging) return
+                stopDrag()
+            })
+        }
+
+        const render = (data) => {
+            const { nickname, amount, message, key } = data
+
             const elBalloon = document.createElement('div')
             elBalloon.classList.add('balloon')
 
@@ -127,66 +294,86 @@
 
             const elMessage = document.createElement('div')
             elMessage.classList.add('message')
-            elMessage.innerText = '별풍선 ' + amount + '개'
+            elMessage.innerText = message || ('별풍선 ' + amount + '개')
 
-            elBalloon.dataset['key'] = key
-            elBalloon.dataset['nick'] = nickname
-            elBalloon.dataset['amount'] = amount
+            elBalloon.dataset.key = key
+            elBalloon.dataset.nick = nickname
+            elBalloon.dataset.amount = amount
+
+            const img = createBalloonImage(amount)
 
             elInfo.append(elNick)
             elInfo.append(elMessage)
+
             if (config.stack === 'NONE') {
                 elBalloon.append(img)
                 elBalloon.append(elInfo)
 
-                if (isAmount) {
+                if (!balloon[amount]) {
                     elBalloon.append(elAmount)
                 }
 
                 document.getElementById('content').append(elBalloon)
             }
             else if (config.stack === 'NICK') {
-                const elFilter = document.querySelector(`[data-nick='${nickname}']`)
+                const elFilter = document.querySelector(`.balloon[data-nick="${nickname}"]`)
                 if (elFilter) {
+                    ensureBalloonImage(elFilter)
                     elFilter.append(elInfo)
                 }
                 else {
                     elBalloon.append(img)
                     elBalloon.append(elInfo)
+
+                    if (!balloon[amount]) {
+                        elBalloon.append(elAmount)
+                    }
 
                     document.getElementById('content').append(elBalloon)
                 }
             }
             else if (config.stack === 'AMOUNT') {
-                const elFilter = document.querySelector(`[data-amount='${amount}']`)
+                const elFilter = document.querySelector(`.balloon[data-amount="${amount}"]`)
                 if (elFilter) {
+                    ensureBalloonImage(elFilter)
                     elFilter.append(elInfo)
                 }
                 else {
                     elBalloon.append(img)
                     elBalloon.append(elInfo)
 
+                    if (!balloon[amount]) {
+                        elBalloon.append(elAmount)
+                    }
+
                     document.getElementById('content').append(elBalloon)
                 }
             }
+
+            const targetBalloon = document.querySelector(`.balloon[data-key="${key}"]`) || elBalloon
+
+            ensureBalloonImage(targetBalloon)
+            applyManualPosition(targetBalloon, key)
+            enableDragByInfo(elInfo, targetBalloon, key)
         }
 
         const renderAll = () => {
-            document.getElementById('content').innerHTML = ''
-            document.getElementById('content').style.direction = config.align === 'LEFT' ? 'ltr' : 'rtl'
-            document.getElementById('content').style.top = config.position === 'TOP' ? '0' : ''
-            document.getElementById('content').style.bottom = config.position === 'BOTTOM' ? '0' : ''
+            const content = document.getElementById('content')
+            content.innerHTML = ''
+            content.style.direction = config.align === 'LEFT' ? 'ltr' : 'rtl'
+            content.style.top = config.position === 'TOP' ? '0' : ''
+            content.style.bottom = config.position === 'BOTTOM' ? '0' : ''
+
             main.list.forEach((r) => {
                 render(r)
             })
+
+            // 혹시 렌더 후 img 누락된 balloon이 있으면 보정
+            document.querySelectorAll('.balloon').forEach((el) => {
+                ensureBalloonImage(el)
+            })
         }
 
-        const main = {
-            list: []
-        }
-
-        const balloon = {}
-        // WebSocket 연결
         const socket = {
             ws: null,
             connected: false,
@@ -198,8 +385,10 @@
                 this.ws.onopen = () => {
                     this.connected = true
                 }
+
                 this.ws.onmessage = (event) => {
                     const data = JSON.parse(event.data)
+
                     if (data.type === 'initData') {
                         main.list = [...JSON.parse(decodeURIComponent(data.content)) || []]
                         this.streamerId = data.streamerId
@@ -207,6 +396,7 @@
                         config.align = data.align || 'LEFT'
                         config.stack = data.stack || 'NONE'
                         config.position = data.position || 'TOP'
+
                         if (this.streamerId) {
                             this.getData().then(() => {
                                 this.getImage()
@@ -217,9 +407,10 @@
                         main.list = [...JSON.parse(decodeURIComponent(data.content)) || []]
                         this.streamerId = data.streamerId
                         this.imageList = data.imageList || []
-                        config.align = data.align
-                        config.stack = data.stack
-                        config.position = data.position
+                        config.align = data.align || 'LEFT'
+                        config.stack = data.stack || 'NONE'
+                        config.position = data.position || 'TOP'
+
                         if (this.streamerId) {
                             this.getData().then(() => {
                                 this.getImage()
@@ -234,15 +425,20 @@
                     }
                     else if (data.type === 'remove') {
                         const key = data.content
+
                         if (key === 'all') {
-                            // document.querySelectorAll('[data-key]')
                             main.list.splice(0, main.list.length)
+                            main.manualPositions = {}
                         }
                         else {
                             const idx = main.list.findIndex((r) => r.key === key)
-                            main.list.splice(idx, 1)
-                            document.querySelectorAll(`[data-key=${key}]`).forEach((el) => el.remove())
+                            if (idx > -1) {
+                                main.list.splice(idx, 1)
+                            }
+                            delete main.manualPositions[key]
+                            document.querySelectorAll(`[data-key="${key}"]`).forEach((el) => el.remove())
                         }
+
                         renderAll()
                     }
                     else if (data.type === 'image') {
@@ -254,10 +450,12 @@
                         }
                     }
                 }
+
                 this.ws.onclose = () => {
                     this.connected = false
                 }
             },
+
             getData() {
                 return fetch(`http://localhost:3000/api/data?streamerId=${this.streamerId}`)
                     .then(async (res) => {
@@ -267,6 +465,7 @@
                         })
                     })
             },
+
             getImage() {
                 this.imageList.forEach((r) => {
                     balloon[r.amount] = r.url
