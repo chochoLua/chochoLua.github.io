@@ -124,10 +124,18 @@
 
         const main = {
             list: [],
-            manualPositions: {} // key 기준 드래그 위치 저장
+            manualPositions: {},
+            detachedKeys: {}
         }
 
         const balloon = {}
+
+        function getMessageText(data) {
+            if (data.message !== undefined && data.message !== null && data.message !== '') {
+                return data.message
+            }
+            return '별풍선 ' + data.amount + '개'
+        }
 
         function getBalloonImageSrc(amount) {
             if (balloon[amount]) {
@@ -146,6 +154,10 @@
             return `https://res.sooplive.co.kr/new_player/items/ba_step${step}.png`
         }
 
+        function isCustomImage(amount) {
+            return !!balloon[amount]
+        }
+
         function createBalloonImage(amount) {
             const img = document.createElement('img')
             img.src = getBalloonImageSrc(amount)
@@ -154,13 +166,112 @@
         }
 
         function ensureBalloonImage(elBalloon) {
-            let img = elBalloon.querySelector('img')
+            let img = null
+
+            for (let i = 0; i < elBalloon.children.length; i++) {
+                const child = elBalloon.children[i]
+                if (child.tagName && child.tagName.toLowerCase() === 'img') {
+                    img = child
+                    break
+                }
+            }
+
             if (!img) {
-                const amount = elBalloon.dataset.amount
-                img = createBalloonImage(amount)
+                img = createBalloonImage(elBalloon.dataset.amount)
                 elBalloon.insertBefore(img, elBalloon.firstChild)
             } else if (!img.getAttribute('src')) {
                 img.src = getBalloonImageSrc(elBalloon.dataset.amount)
+            }
+
+            return img
+        }
+
+        function ensureAmountLabel(elBalloon) {
+            if (isCustomImage(elBalloon.dataset.amount)) {
+                const exists = elBalloon.querySelector('.amount')
+                if (exists) {
+                    exists.remove()
+                }
+                return null
+            }
+
+            let elAmount = null
+            for (let i = 0; i < elBalloon.children.length; i++) {
+                const child = elBalloon.children[i]
+                if (child.classList && child.classList.contains('amount')) {
+                    elAmount = child
+                    break
+                }
+            }
+
+            if (!elAmount) {
+                elAmount = document.createElement('div')
+                elAmount.classList.add('amount')
+                elAmount.innerText = elBalloon.dataset.amount
+                elAmount.dataset.donation = elBalloon.dataset.amount
+                elBalloon.append(elAmount)
+            } else {
+                elAmount.innerText = elBalloon.dataset.amount
+                elAmount.dataset.donation = elBalloon.dataset.amount
+            }
+
+            return elAmount
+        }
+
+        function createBalloonShell(data, overrideKey) {
+            const elBalloon = document.createElement('div')
+            elBalloon.classList.add('balloon')
+            elBalloon.dataset.key = overrideKey || data.key
+            elBalloon.dataset.nick = data.nickname
+            elBalloon.dataset.amount = data.amount
+            return elBalloon
+        }
+
+        function createInfoElement(data) {
+            const elInfo = document.createElement('div')
+            elInfo.classList.add('info')
+
+            const elNick = document.createElement('div')
+            elNick.classList.add('nick')
+            elNick.innerText = data.nickname
+
+            const elMessage = document.createElement('div')
+            elMessage.classList.add('message')
+            elMessage.innerText = getMessageText(data)
+
+            elInfo.dataset.key = data.key
+            elInfo.dataset.nick = data.nickname
+            elInfo.dataset.amount = data.amount
+            elInfo.__data = {
+                id: data.id,
+                nickname: data.nickname,
+                amount: data.amount,
+                message: data.message,
+                key: data.key
+            }
+
+            elInfo.append(elNick)
+            elInfo.append(elMessage)
+
+            bindInfoDrag(elInfo)
+            return elInfo
+        }
+
+        function getDirectInfos(elBalloon) {
+            const result = []
+            for (let i = 0; i < elBalloon.children.length; i++) {
+                const child = elBalloon.children[i]
+                if (child.classList && child.classList.contains('info')) {
+                    result.push(child)
+                }
+            }
+            return result
+        }
+
+        function updateBalloonKeyFromInfo(elBalloon) {
+            const infos = getDirectInfos(elBalloon)
+            if (infos.length > 0) {
+                elBalloon.dataset.key = infos[0].dataset.key
             }
         }
 
@@ -175,68 +286,169 @@
             elBalloon.style.bottom = 'auto'
         }
 
-        function enableDragByInfo(elInfo, elBalloon, key) {
-            let isDragging = false
-            let offsetX = 0
-            let offsetY = 0
+        function makeBalloonManual(elBalloon, forceKey) {
+            const content = document.getElementById('content')
+            const balloonRect = elBalloon.getBoundingClientRect()
+            const contentRect = content.getBoundingClientRect()
 
-            const onMove = (clientX, clientY) => {
-                const content = document.getElementById('content')
-                const contentRect = content.getBoundingClientRect()
+            const left = balloonRect.left - contentRect.left
+            const top = balloonRect.top - contentRect.top
+            const saveKey = forceKey || elBalloon.dataset.key
 
-                let left = clientX - contentRect.left - offsetX
-                let top = clientY - contentRect.top - offsetY
+            elBalloon.classList.add('manual-position')
+            elBalloon.style.left = left + 'px'
+            elBalloon.style.top = top + 'px'
+            elBalloon.style.right = 'auto'
+            elBalloon.style.bottom = 'auto'
 
-                const maxLeft = Math.max(0, content.clientWidth - elBalloon.offsetWidth)
-                const maxTop = Math.max(0, content.clientHeight - elBalloon.offsetHeight)
-
-                left = Math.max(0, Math.min(left, maxLeft))
-                top = Math.max(0, Math.min(top, maxTop))
-
-                elBalloon.style.left = left + 'px'
-                elBalloon.style.top = top + 'px'
-
-                main.manualPositions[key] = { left, top }
+            if (elBalloon.parentNode !== content) {
+                content.appendChild(elBalloon)
             }
 
+            main.manualPositions[saveKey] = { left, top }
+            return { left, top }
+        }
+
+        function moveBalloonToPointer(elBalloon, clientX, clientY, offsetX, offsetY, saveKey) {
+            const content = document.getElementById('content')
+            const rect = content.getBoundingClientRect()
+
+            let left = clientX - rect.left - offsetX
+            let top = clientY - rect.top - offsetY
+
+            const maxLeft = Math.max(0, content.clientWidth - elBalloon.offsetWidth)
+            const maxTop = Math.max(0, content.clientHeight - elBalloon.offsetHeight)
+
+            left = Math.max(0, Math.min(left, maxLeft))
+            top = Math.max(0, Math.min(top, maxTop))
+
+            elBalloon.style.left = left + 'px'
+            elBalloon.style.top = top + 'px'
+
+            main.manualPositions[saveKey || elBalloon.dataset.key] = { left, top }
+            return { left, top }
+        }
+
+        function appendInfoToBalloon(elBalloon, elInfo) {
+            ensureBalloonImage(elBalloon)
+            elBalloon.append(elInfo)
+            ensureAmountLabel(elBalloon)
+        }
+
+        function createDetachedBalloonFromInfo(elInfo, sourceBalloon) {
+            const data = elInfo.__data || {
+                nickname: elInfo.dataset.nick,
+                amount: elInfo.dataset.amount,
+                message: '',
+                key: elInfo.dataset.key
+            }
+
+            const detachedKey = data.key
+            const newBalloon = createBalloonShell(data, detachedKey)
+            appendInfoToBalloon(newBalloon, elInfo)
+            document.getElementById('content').append(newBalloon)
+
+            main.detachedKeys[detachedKey] = true
+
+            updateBalloonKeyFromInfo(sourceBalloon)
+            ensureBalloonImage(sourceBalloon)
+            ensureAmountLabel(sourceBalloon)
+
+            return newBalloon
+        }
+
+        function findStackTarget(data) {
+            if (main.detachedKeys[data.key]) {
+                return null
+            }
+
+            if (config.stack === 'NICK') {
+                return document.querySelector(`.balloon[data-nick="${data.nickname}"]:not(.manual-position)`)
+            }
+
+            if (config.stack === 'AMOUNT') {
+                return document.querySelector(`.balloon[data-amount="${data.amount}"]:not(.manual-position)`)
+            }
+
+            return null
+        }
+
+        function bindInfoDrag(elInfo) {
+            let isDragging = false
+            let sourceBalloon = null
+            let dragBalloon = null
+            let dragKey = null
+            let offsetX = 0
+            let offsetY = 0
+            let pendingSplit = false
+
             const startDrag = (clientX, clientY) => {
-                const content = document.getElementById('content')
-                const balloonRect = elBalloon.getBoundingClientRect()
-                const contentRect = content.getBoundingClientRect()
+                sourceBalloon = elInfo.closest('.balloon')
+                if (!sourceBalloon) return
 
-                ensureBalloonImage(elBalloon)
+                const infos = getDirectInfos(sourceBalloon)
+                const isStackMode = config.stack === 'NICK' || config.stack === 'AMOUNT'
+                pendingSplit = isStackMode && infos.length > 1
 
-                // 자동 정렬 상태에서 드래그 시작 시 현재 보이는 위치를 absolute로 고정
-                if (!elBalloon.classList.contains('manual-position')) {
-                    const currentLeft = balloonRect.left - contentRect.left
-                    const currentTop = balloonRect.top - contentRect.top
+                if (!pendingSplit) {
+                    dragBalloon = sourceBalloon
+                    dragKey = elInfo.dataset.key || sourceBalloon.dataset.key
 
-                    elBalloon.classList.add('manual-position')
-                    elBalloon.style.left = currentLeft + 'px'
-                    elBalloon.style.top = currentTop + 'px'
-                    elBalloon.style.right = 'auto'
-                    elBalloon.style.bottom = 'auto'
-
-                    main.manualPositions[key] = {
-                        left: currentLeft,
-                        top: currentTop
+                    if (!dragBalloon.classList.contains('manual-position')) {
+                        makeBalloonManual(dragBalloon, dragKey)
                     }
 
-                    // absolute 전환 시 DOM 끝으로 보내서 겹침 이슈 감소
-                    content.appendChild(elBalloon)
+                    const rect = dragBalloon.getBoundingClientRect()
+                    offsetX = clientX - rect.left
+                    offsetY = clientY - rect.top
+                } else {
+                    dragBalloon = null
+                    dragKey = elInfo.dataset.key
                 }
-
-                const updatedRect = elBalloon.getBoundingClientRect()
-                offsetX = clientX - updatedRect.left
-                offsetY = clientY - updatedRect.top
 
                 isDragging = true
                 elInfo.classList.add('dragging')
             }
 
-            const stopDrag = () => {
+            const moveDrag = (clientX, clientY) => {
+                if (!isDragging) return
+                if (!dragBalloon) return
+
+                moveBalloonToPointer(dragBalloon, clientX, clientY, offsetX, offsetY, dragKey)
+            }
+
+            const endDrag = (clientX, clientY) => {
+                if (!isDragging) return
+
                 isDragging = false
                 elInfo.classList.remove('dragging')
+
+                if (pendingSplit && sourceBalloon) {
+                    dragBalloon = createDetachedBalloonFromInfo(elInfo, sourceBalloon)
+                    dragKey = elInfo.dataset.key
+
+                    const rect = dragBalloon.getBoundingClientRect()
+                    const contentRect = document.getElementById('content').getBoundingClientRect()
+
+                    const currentLeft = rect.left - contentRect.left
+                    const currentTop = rect.top - contentRect.top
+
+                    dragBalloon.classList.add('manual-position')
+                    dragBalloon.style.left = currentLeft + 'px'
+                    dragBalloon.style.top = currentTop + 'px'
+                    dragBalloon.style.right = 'auto'
+                    dragBalloon.style.bottom = 'auto'
+
+                    offsetX = Math.min(rect.width / 2, 40)
+                    offsetY = Math.min(rect.height / 2, 30)
+
+                    moveBalloonToPointer(dragBalloon, clientX, clientY, offsetX, offsetY, dragKey)
+                }
+
+                pendingSplit = false
+                sourceBalloon = null
+                dragBalloon = null
+                dragKey = null
             }
 
             elInfo.addEventListener('mousedown', (e) => {
@@ -245,116 +457,59 @@
             })
 
             document.addEventListener('mousemove', (e) => {
-                if (!isDragging) return
-                onMove(e.clientX, e.clientY)
+                moveDrag(e.clientX, e.clientY)
             })
 
-            document.addEventListener('mouseup', () => {
-                if (!isDragging) return
-                stopDrag()
+            document.addEventListener('mouseup', (e) => {
+                endDrag(e.clientX, e.clientY)
             })
 
             elInfo.addEventListener('touchstart', (e) => {
                 const t = e.touches[0]
                 if (!t) return
                 startDrag(t.clientX, t.clientY)
-            }, { passive: false })
+            }, { passive: true })
 
             document.addEventListener('touchmove', (e) => {
                 if (!isDragging) return
                 const t = e.touches[0]
                 if (!t) return
                 e.preventDefault()
-                onMove(t.clientX, t.clientY)
+                moveDrag(t.clientX, t.clientY)
             }, { passive: false })
 
-            document.addEventListener('touchend', () => {
+            document.addEventListener('touchend', (e) => {
                 if (!isDragging) return
-                stopDrag()
+                const t = e.changedTouches && e.changedTouches[0]
+                if (t) endDrag(t.clientX, t.clientY)
+                else endDrag(0, 0)
             })
         }
 
         const render = (data) => {
-            const { nickname, amount, message, key } = data
-
-            const elBalloon = document.createElement('div')
-            elBalloon.classList.add('balloon')
-
-            const elInfo = document.createElement('div')
-            elInfo.classList.add('info')
-
-            const elAmount = document.createElement('div')
-            elAmount.classList.add('amount')
-            elAmount.innerText = amount
-            elAmount.dataset.donation = amount
-
-            const elNick = document.createElement('div')
-            elNick.classList.add('nick')
-            elNick.innerText = nickname
-
-            const elMessage = document.createElement('div')
-            elMessage.classList.add('message')
-            elMessage.innerText = message || ('별풍선 ' + amount + '개')
-
-            elBalloon.dataset.key = key
-            elBalloon.dataset.nick = nickname
-            elBalloon.dataset.amount = amount
-
-            const img = createBalloonImage(amount)
-
-            elInfo.append(elNick)
-            elInfo.append(elMessage)
+            const elInfo = createInfoElement(data)
+            const content = document.getElementById('content')
 
             if (config.stack === 'NONE') {
-                elBalloon.append(img)
-                elBalloon.append(elInfo)
-
-                if (!balloon[amount]) {
-                    elBalloon.append(elAmount)
-                }
-
-                document.getElementById('content').append(elBalloon)
-            }
-            else if (config.stack === 'NICK') {
-                const elFilter = document.querySelector(`.balloon[data-nick="${nickname}"]`)
-                if (elFilter) {
-                    ensureBalloonImage(elFilter)
-                    elFilter.append(elInfo)
-                }
-                else {
-                    elBalloon.append(img)
-                    elBalloon.append(elInfo)
-
-                    if (!balloon[amount]) {
-                        elBalloon.append(elAmount)
-                    }
-
-                    document.getElementById('content').append(elBalloon)
-                }
-            }
-            else if (config.stack === 'AMOUNT') {
-                const elFilter = document.querySelector(`.balloon[data-amount="${amount}"]`)
-                if (elFilter) {
-                    ensureBalloonImage(elFilter)
-                    elFilter.append(elInfo)
-                }
-                else {
-                    elBalloon.append(img)
-                    elBalloon.append(elInfo)
-
-                    if (!balloon[amount]) {
-                        elBalloon.append(elAmount)
-                    }
-
-                    document.getElementById('content').append(elBalloon)
-                }
+                const elBalloon = createBalloonShell(data)
+                appendInfoToBalloon(elBalloon, elInfo)
+                content.append(elBalloon)
+                applyManualPosition(elBalloon, data.key)
+                return
             }
 
-            const targetBalloon = document.querySelector(`.balloon[data-key="${key}"]`) || elBalloon
+            const stackTarget = findStackTarget(data)
 
-            ensureBalloonImage(targetBalloon)
-            applyManualPosition(targetBalloon, key)
-            enableDragByInfo(elInfo, targetBalloon, key)
+            if (stackTarget) {
+                appendInfoToBalloon(stackTarget, elInfo)
+                updateBalloonKeyFromInfo(stackTarget)
+                return
+            }
+
+            const elBalloon = createBalloonShell(data)
+            appendInfoToBalloon(elBalloon, elInfo)
+            content.append(elBalloon)
+            applyManualPosition(elBalloon, data.key)
         }
 
         const renderAll = () => {
@@ -364,13 +519,15 @@
             content.style.top = config.position === 'TOP' ? '0' : ''
             content.style.bottom = config.position === 'BOTTOM' ? '0' : ''
 
+            main.detachedKeys = {}
+
             main.list.forEach((r) => {
                 render(r)
             })
 
-            // 혹시 렌더 후 img 누락된 balloon이 있으면 보정
-            document.querySelectorAll('.balloon').forEach((el) => {
-                ensureBalloonImage(el)
+            document.querySelectorAll('.balloon').forEach((elBalloon) => {
+                ensureBalloonImage(elBalloon)
+                ensureAmountLabel(elBalloon)
             })
         }
 
@@ -418,7 +575,7 @@
                         }
                     }
                     else if (data.type === 'balloon') {
-                        if (!main.list.filter((r) => r.key === data.content.key).length) {
+                        if (!main.list.some((r) => r.key === data.content.key)) {
                             main.list = [...main.list, data.content]
                             render(data.content)
                         }
@@ -429,14 +586,20 @@
                         if (key === 'all') {
                             main.list.splice(0, main.list.length)
                             main.manualPositions = {}
+                            main.detachedKeys = {}
                         }
                         else {
                             const idx = main.list.findIndex((r) => r.key === key)
                             if (idx > -1) {
                                 main.list.splice(idx, 1)
                             }
+
                             delete main.manualPositions[key]
-                            document.querySelectorAll(`[data-key="${key}"]`).forEach((el) => el.remove())
+                            delete main.detachedKeys[key]
+
+                            document.querySelectorAll(`[data-key="${key}"]`).forEach((el) => {
+                                el.remove()
+                            })
                         }
 
                         renderAll()
