@@ -96,6 +96,7 @@
             position: relative;
             user-select: none;
             box-sizing: border-box;
+            transition: outline-color 0.12s ease, box-shadow 0.12s ease, opacity 0.12s ease, transform 0.12s ease;
         }
 
         .balloon.manual-position {
@@ -116,6 +117,23 @@
             outline: 3px solid #4da3ff;
             outline-offset: 2px;
             border-radius: 12px;
+            box-shadow: 0 0 0 6px rgba(77, 163, 255, 0.18);
+        }
+
+        .balloon.drag-preview {
+            opacity: 0.72;
+            transform: scale(0.98);
+            filter: saturate(1.05);
+        }
+
+        body.drag-merge-allowed,
+        body.drag-merge-allowed * {
+            cursor: copy !important;
+        }
+
+        body.drag-merge-forbidden,
+        body.drag-merge-forbidden * {
+            cursor: not-allowed !important;
         }
     </style>
     <script>
@@ -129,7 +147,11 @@
             list: [],
             manualPositions: {},
             separatedKeys: {},
-            currentMergeTarget: null
+            currentMergeTarget: null,
+            dragState: {
+                active: false,
+                canMerge: false
+            }
         }
 
         const balloon = {}
@@ -472,16 +494,40 @@
                 main.currentMergeTarget.classList.remove('merge-target')
                 main.currentMergeTarget = null
             }
+            document.body.classList.remove('drag-merge-allowed')
+            document.body.classList.remove('drag-merge-forbidden')
+            main.dragState.canMerge = false
+        }
+
+        function setDragCursorState(canMerge) {
+            document.body.classList.remove('drag-merge-allowed')
+            document.body.classList.remove('drag-merge-forbidden')
+
+            if (!main.dragState.active) return
+
+            if (canMerge) {
+                document.body.classList.add('drag-merge-allowed')
+            } else {
+                document.body.classList.add('drag-merge-forbidden')
+            }
+
+            main.dragState.canMerge = canMerge
         }
 
         function setMergeHighlight(targetBalloon) {
-            if (main.currentMergeTarget === targetBalloon) return
+            if (main.currentMergeTarget === targetBalloon) {
+                setDragCursorState(!!targetBalloon)
+                return
+            }
 
             clearMergeHighlight()
 
             if (targetBalloon) {
                 targetBalloon.classList.add('merge-target')
                 main.currentMergeTarget = targetBalloon
+                setDragCursorState(true)
+            } else if (main.dragState.active) {
+                setDragCursorState(false)
             }
         }
 
@@ -489,6 +535,15 @@
             const target = findMergeTarget(sourceInfo, draggedBalloon, clientX, clientY)
             setMergeHighlight(target)
             return target
+        }
+
+        function setDraggingPreview(elBalloon, isDragging) {
+            if (!elBalloon) return
+            if (isDragging) {
+                elBalloon.classList.add('drag-preview')
+            } else {
+                elBalloon.classList.remove('drag-preview')
+            }
         }
 
         function mergeInfoIntoBalloon(elInfo, fromBalloon, toBalloon) {
@@ -522,6 +577,8 @@
                 if (!sourceBalloon) return
 
                 clearMergeHighlight()
+                main.dragState.active = true
+                setDragCursorState(false)
 
                 const infos = getDirectInfos(sourceBalloon)
                 const isStackMode = config.stack === 'NICK' || config.stack === 'AMOUNT'
@@ -542,6 +599,8 @@
                     if (isStackMode) {
                         main.separatedKeys[dragKey] = true
                     }
+
+                    setDraggingPreview(dragBalloon, true)
                 } else {
                     dragBalloon = null
                     dragKey = elInfo.dataset.key
@@ -558,7 +617,11 @@
                     moveBalloonToPointer(dragBalloon, clientX, clientY, offsetX, offsetY, dragKey)
                     updateMergeHighlight(elInfo, dragBalloon, clientX, clientY)
                 } else {
-                    clearMergeHighlight()
+                    if (config.stack === 'NICK' || config.stack === 'AMOUNT') {
+                        setDragCursorState(false)
+                    } else {
+                        clearMergeHighlight()
+                    }
                 }
             }
 
@@ -588,15 +651,19 @@
                     offsetY = Math.min(rect.height / 2, 30)
 
                     moveBalloonToPointer(dragBalloon, clientX, clientY, offsetX, offsetY, dragKey)
+                    setDraggingPreview(dragBalloon, true)
                 }
 
                 if (dragBalloon) {
                     const mergeTarget = updateMergeHighlight(elInfo, dragBalloon, clientX, clientY)
 
                     if (mergeTarget) {
+                        setDraggingPreview(dragBalloon, false)
                         mergeInfoIntoBalloon(elInfo, dragBalloon, mergeTarget)
                     } else {
+                        setDraggingPreview(dragBalloon, false)
                         clearMergeHighlight()
+
                         if (config.stack === 'NICK' || config.stack === 'AMOUNT') {
                             main.separatedKeys[dragKey] = true
                         }
@@ -604,6 +671,10 @@
                 } else {
                     clearMergeHighlight()
                 }
+
+                main.dragState.active = false
+                document.body.classList.remove('drag-merge-allowed')
+                document.body.classList.remove('drag-merge-forbidden')
 
                 pendingSplit = false
                 sourceBalloon = null
